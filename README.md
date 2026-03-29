@@ -6,6 +6,8 @@ This repository now contains:
 - shared plugin assets in `shared/`
 - Claude-specific manifest in `claude/.claude-plugin/`
 - Codex-specific manifest in `codex/.codex-plugin/`
+- a committed universal plugin package in `plugins/gluon-agent/`
+- a Claude marketplace in `.claude-plugin/marketplace.json`
 - `build.sh` to assemble runnable distributions under `dist/`
 - `.agents/plugins/marketplace.json` so Codex can discover the plugin from this repo
 - install scripts under `scripts/`
@@ -23,6 +25,8 @@ codex/
   .codex-plugin/plugin.json
 plugins/
   gluon-agent/
+.claude-plugin/
+  marketplace.json
 .agents/plugins/marketplace.json
 scripts/
 build.sh
@@ -38,7 +42,7 @@ This generates:
 
 - `dist/claude-plugin/`
 - `dist/codex-plugin/`
-- `plugins/gluon-agent/` for the repo-local Codex marketplace
+- `plugins/gluon-agent/` as the committed repo plugin package for both platforms
 
 ## Install From GitHub
 
@@ -46,15 +50,22 @@ Repository:
 
 - [https://github.com/yangzichao/gluon-agent](https://github.com/yangzichao/gluon-agent)
 
-Claude Code:
+### Claude Code
+
+True GitHub marketplace install is supported.
 
 ```bash
-git clone https://github.com/yangzichao/gluon-agent.git
-cd gluon-agent
-bash scripts/install-claude.sh
+/plugin marketplace add yangzichao/gluon-agent
+/plugin install gluon-agent@gluon-agent-marketplace
 ```
 
-Codex:
+This works because the repo publishes a marketplace at `.claude-plugin/marketplace.json` that points at `./plugins/gluon-agent`.
+
+### Codex
+
+Direct GitHub marketplace install is not documented in current Codex plugin docs. The supported paths today are:
+
+1. Clone the repo and run the installer:
 
 ```bash
 git clone https://github.com/yangzichao/gluon-agent.git
@@ -62,7 +73,7 @@ cd gluon-agent
 bash scripts/install-codex.sh
 ```
 
-If someone opens this repo directly in Codex, the repo marketplace at `.agents/plugins/marketplace.json` exposes `gluon-agent` from `./plugins/gluon-agent`.
+2. Or open the cloned repo in Codex and use the repo marketplace at `.agents/plugins/marketplace.json`, which exposes `gluon-agent` from `./plugins/gluon-agent`.
 
 ## Test
 
@@ -76,6 +87,11 @@ Codex:
 
 1. Run `bash scripts/install-codex.sh`, or
 2. Open this repo in Codex and use the repo marketplace.
+
+## Source Notes
+
+- Claude GitHub marketplace install is documented by Anthropic via `/plugin marketplace add owner/repo`.
+- Codex currently documents repo and personal local marketplaces, while official public plugin publishing is still marked "coming soon".
 
 ## Local Commands
 

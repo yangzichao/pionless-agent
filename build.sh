@@ -7,8 +7,19 @@ DIST_DIR="$ROOT_DIR/dist"
 CLAUDE_DIST="$DIST_DIR/claude-plugin"
 CODEX_DIST="$DIST_DIR/codex-plugin"
 REPO_PLUGIN_DIR="$ROOT_DIR/plugins/gluon-agent"
+LOCK_DIR="$ROOT_DIR/.build.lock"
 
-rm -rf "$CLAUDE_DIST" "$CODEX_DIST"
+while ! mkdir "$LOCK_DIR" 2>/dev/null; do
+  sleep 0.1
+done
+
+cleanup() {
+  rmdir "$LOCK_DIR"
+}
+
+trap cleanup EXIT
+
+rm -rf "$CLAUDE_DIST" "$CODEX_DIST" "$REPO_PLUGIN_DIR"
 
 mkdir -p "$CLAUDE_DIST" "$CODEX_DIST"
 
@@ -86,9 +97,73 @@ print(f"  Claude Code: {codex_root.parent / 'claude-plugin'}")
 print(f"  Codex:       {codex_root}")
 PYTHON
 
-rm -rf "$REPO_PLUGIN_DIR"
 mkdir -p "$ROOT_DIR/plugins"
 mkdir -p "$REPO_PLUGIN_DIR"
-cp -R "$CODEX_DIST"/. "$REPO_PLUGIN_DIR"/
+cp -R "$ROOT_DIR/shared/skills" "$REPO_PLUGIN_DIR/"
+cp "$ROOT_DIR/shared/.mcp.json" "$REPO_PLUGIN_DIR/"
+
+if [ -d "$ROOT_DIR/shared/scripts" ]; then
+  cp -R "$ROOT_DIR/shared/scripts" "$REPO_PLUGIN_DIR/"
+fi
+
+cp -R "$ROOT_DIR/claude/.claude-plugin" "$REPO_PLUGIN_DIR/"
+cp -R "$ROOT_DIR/codex/.codex-plugin" "$REPO_PLUGIN_DIR/"
+
+if [ -d "$ROOT_DIR/claude/agents" ]; then
+  cp -R "$ROOT_DIR/claude/agents" "$REPO_PLUGIN_DIR/"
+fi
+
+if [ -d "$ROOT_DIR/claude/hooks" ]; then
+  cp -R "$ROOT_DIR/claude/hooks" "$REPO_PLUGIN_DIR/"
+fi
+
+if [ -f "$ROOT_DIR/claude/.lsp.json" ]; then
+  cp "$ROOT_DIR/claude/.lsp.json" "$REPO_PLUGIN_DIR/"
+fi
+
+if [ -f "$ROOT_DIR/codex/.app.json" ]; then
+  cp "$ROOT_DIR/codex/.app.json" "$REPO_PLUGIN_DIR/"
+fi
+
+/usr/bin/python3 - "$REPO_PLUGIN_DIR" <<'PYTHON'
+import pathlib
+import re
+import sys
+
+plugin_root = pathlib.Path(sys.argv[1])
+
+for path in plugin_root.rglob("SKILL.md"):
+    text = path.read_text()
+    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.DOTALL)
+    if not match:
+        continue
+
+    frontmatter = match.group(1).splitlines()
+    body = match.group(2)
+    kept = []
+    keep_description_block = False
+
+    for line in frontmatter:
+        stripped = line.strip()
+        if stripped.startswith("name:"):
+            kept.append(line)
+            keep_description_block = False
+            continue
+
+        if stripped.startswith("description:"):
+            kept.append(line)
+            keep_description_block = stripped in {"description: |", "description: >", "description: |-", "description: >-"}
+            continue
+
+        if keep_description_block and (line.startswith(" ") or line.startswith("\t")):
+            kept.append(line)
+            continue
+
+        if stripped and not (line.startswith(" ") or line.startswith("\t")):
+            keep_description_block = False
+
+    if kept:
+        path.write_text("---\n" + "\n".join(kept) + "\n---\n" + body)
+PYTHON
 
 echo "  Repo plugin: $REPO_PLUGIN_DIR"

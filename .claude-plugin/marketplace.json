@@ -1,0 +1,17 @@
+{
+  "name": "gluon-agent-marketplace",
+  "owner": {
+    "name": "Zichao Yang",
+    "url": "https://github.com/yangzichao"
+  },
+  "metadata": {
+    "description": "Cross-platform Claude Code and Codex plugin marketplace for gluon-agent."
+  },
+  "plugins": [
+    {
+      "name": "gluon-agent",
+      "source": "./plugins/gluon-agent",
+      "description": "Shared Claude Code and Codex plugin scaffold with bundled skills and MCP configuration."
+    }
+  ]
+}
