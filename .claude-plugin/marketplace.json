@@ -5,13 +5,13 @@
     "url": "https://github.com/yangzichao"
   },
   "metadata": {
-    "description": "Cross-platform Claude Code and Codex plugin marketplace for gluon-agent."
+    "description": "Cross-platform Claude Code and Codex plugin marketplace for gluon-agent. Provides a three-tier research system (quick-research, deep-research, deep-research-pro)."
   },
   "plugins": [
     {
       "name": "gluon-agent",
       "source": "./plugins/gluon-agent",
-      "description": "Shared Claude Code and Codex plugin scaffold with bundled skills and MCP configuration."
+      "description": "Shared Claude Code and Codex plugin with a tiered research system (quick-research, deep-research, deep-research-pro) and composable subagent patterns."
     }
   ]
 }

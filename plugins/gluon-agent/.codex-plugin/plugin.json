@@ -1,7 +1,7 @@
 {
   "name": "gluon-agent",
-  "version": "0.1.0",
-  "description": "Universal plugin scaffold for Claude Code and Codex with shared skills and shared MCP configuration.",
+  "version": "0.2.0",
+  "description": "Cross-platform Claude Code and Codex plugin with shared skills, including a deep-research workflow built on orchestrator-worker planning and bounded context reconstruction.",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "author": {
@@ -20,8 +20,8 @@
   ],
   "interface": {
     "displayName": "gluon-agent",
-    "shortDescription": "Shared Claude Code and Codex plugin toolkit",
-    "longDescription": "Install shared skills and MCP configuration for the gluon-agent cross-platform plugin scaffold.",
+    "shortDescription": "Shared toolkit with deep research workflow",
+    "longDescription": "Install shared Claude Code and Codex skills, including a deep-research workflow that uses orchestrator-worker planning, Ralph-loop iteration, and workspace reconstruction.",
     "developerName": "Zichao Yang",
     "category": "Productivity",
     "capabilities": [
@@ -30,8 +30,8 @@
     ],
     "websiteURL": "https://github.com/yangzichao/gluon-agent",
     "defaultPrompt": [
-      "Use gluon-agent to explain the shared plugin layout.",
-      "Use gluon-agent to show how Claude Code and Codex share skills."
+      "Use gluon-agent deep-research to investigate a topic and produce a source-backed report.",
+      "Use gluon-agent to explain how Claude Code and Codex share skills through this plugin."
     ],
     "brandColor": "#10A37F"
   }
