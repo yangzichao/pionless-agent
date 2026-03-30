@@ -23,8 +23,8 @@ Each allowed tool serves a distinct role:
 
 - **WebSearch**: discover sources. Generate 3-5 query variants per subquestion (exact-match, semantic, negation, site-specific, temporal).
 - **WebFetch**: deep-read a specific URL. Use liberally after WebSearch identifies promising sources. Extract key facts, data, and quotes with provenance.
-- **Write**: persist state to files. Save `workspace.md` after each reconstruction step. Write the final report to `report.md`.
-- **Read**: reload persisted state. Read `workspace.md` at the start of each iteration—do not rely on earlier conversation turns.
+- **Write**: persist state to files. Save workspace state and the final report under `deep-research/`.
+- **Read**: reload persisted state. Read the current workspace file from `deep-research/` at the start of each iteration—do not rely on earlier conversation turns.
 - **Bash**: data processing, format conversion, computation, or table generation.
 - **Agent** (if available): spawn isolated subagent workers for parallel investigation tracks. Each subagent receives only its task objective, relevant workspace context, and allowed tools. Subagent results are collected and synthesized by the orchestrator.
 
@@ -32,10 +32,12 @@ Each allowed tool serves a distinct role:
 
 Workspace reconstruction only works if the workspace lives in a file, not just in conversation context:
 
-1. At project start, `Write` an initial `workspace.md` with the four-block template (see section 4).
-2. After each meaningful step (search, read, synthesis), `Write` the updated `workspace.md`.
-3. Before each new iteration, `Read` only `workspace.md`—do not rely on earlier conversation turns for research state.
-4. The final report should be written to a separate file (e.g., `report.md`).
+1. At project start, create or reuse a `deep-research/` directory in the current workspace.
+2. Derive a topic slug from the research question, then create a run prefix in the form `YYYY-MM-DD-HHSS-topic`.
+3. `Write` the workspace state to `deep-research/YYYY-MM-DD-HHSS-topic.workspace.md`.
+4. After each meaningful step (search, read, synthesis), overwrite that same workspace file.
+5. Before each new iteration, `Read` only that workspace file—do not rely on earlier conversation turns for research state.
+6. Write the final report to `deep-research/YYYY-MM-DD-HHSS-topic.md`.
 
 ### Subagent delegation
 
@@ -188,6 +190,8 @@ Use iterative deepening without artificial depth caps:
 
 ## Writing rules
 
+Always write the final report into the `deep-research/` directory in the current workspace. The filename must start with `YYYY-MM-DD-HHSS-topic.md`, where `topic` is a short lowercase slug derived from the research question.
+
 Write the final output in answer-first structure. Use the following default template (adjust sections as needed, but always keep the skeleton):
 
 ```markdown
@@ -236,6 +240,10 @@ Additional writing guidelines:
 - Distinguish sourced facts from inference. Use phrases like "based on [source]" vs "this suggests that".
 - Keep the report actionable: a reader should be able to make a decision after the Executive Summary alone.
 - Include a dedicated "Contradictions & Contested Claims" section—this is mandatory for the pro tier.
+- When writing mathematical formulas or expressions, preserve special characters exactly. Do not accidentally rewrite or strip `$`, `\`, `_`, `^`, `{}`, `[]`, or `*` when they are part of notation.
+- Prefer fenced code blocks for literal formulas, pseudo-LaTeX, or syntax examples that must not be interpreted by Markdown.
+- Use inline math only when the renderer is likely to support it; otherwise present the expression in backticks or a fenced block so the formula survives intact.
+- If a sentence mixes prose and notation, check the final text to ensure currency symbols, shell variables, and math delimiters are not confused with each other.
 
 ## Default working template
 

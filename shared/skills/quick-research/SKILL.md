@@ -23,7 +23,7 @@ Produce a concise, sourced answer to a focused question within a tight budget. O
 
 - **WebSearch**: primary discovery tool. Generate 2-3 query variants per question (exact-match + semantic + one alternative angle).
 - **WebFetch**: deep-read 2-4 high-value pages. Don't skim many pages—read the best ones.
-- **Write**: save final output to a file when invoked standalone. When running as a subagent, return findings in the structured format below instead.
+- **Write**: when invoked standalone, write the final output into `deep-research/YYYY-MM-DD-HHSS-topic.md`. When running as a subagent, return findings in the structured format below instead.
 - **Read**: if workspace state was provided by a parent orchestrator, read it to understand context.
 - **Bash**: quick data processing or computation if needed.
 
@@ -98,7 +98,7 @@ For each question, search from at least two angles:
 
 ### Standalone mode (invoked directly by user)
 
-When invoked directly, write a concise answer:
+When invoked directly, create or reuse a `deep-research/` directory in the current workspace, derive a short lowercase topic slug, and write a concise answer to `deep-research/YYYY-MM-DD-HHSS-topic.md`:
 
 ```markdown
 # [Question as Title]
@@ -116,6 +116,12 @@ When invoked directly, write a concise answer:
 ## Sources
 - [Source Title](url)
 ```
+
+Writer rules for notation and special characters:
+
+- Preserve mathematical notation exactly. Do not strip or reinterpret `$`, `\`, `_`, `^`, `{}`, `[]`, or `*` when they are part of a formula.
+- If formula rendering support is uncertain, prefer backticks or fenced code blocks over raw inline Markdown math.
+- Check that dollar signs used for currency, variables, and math delimiters remain unambiguous in the final output.
 
 ### Subagent mode (invoked by a parent orchestrator)
 
