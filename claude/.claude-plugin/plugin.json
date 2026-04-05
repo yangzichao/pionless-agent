@@ -1,6 +1,6 @@
 {
   "name": "gluon-agent",
-  "description": "Cross-platform Claude Code and Codex plugin with a tiered research system (quick-research, deep-research, deep-research-pro) sharing common research rules, MCP configs, and composable subagent patterns.",
+  "description": "Cross-platform research agent package. Claude ships explicit orchestrator and worker subagents, backed by shared research skills and MCP config.",
   "version": "0.2.0",
   "author": {
     "name": "Zichao Yang"
@@ -10,6 +10,8 @@
     "claude-code",
     "codex",
     "plugin",
+    "agents",
+    "subagents",
     "skills",
     "mcp"
   ]

@@ -1,7 +1,7 @@
 {
   "name": "gluon-agent",
   "version": "0.2.0",
-  "description": "Cross-platform Claude Code and Codex plugin with a tiered research system (quick-research, deep-research, deep-research-pro) sharing common research rules, MCP configs, and composable subagent patterns.",
+  "description": "Cross-platform research agent package. Codex ships shared research skills through the plugin and installs matching custom-agent templates separately under ~/.codex/agents.",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "author": {
@@ -15,13 +15,15 @@
     "codex",
     "claude-code",
     "plugin",
+    "agents",
+    "subagents",
     "skills",
     "mcp"
   ],
   "interface": {
     "displayName": "gluon-agent",
-    "shortDescription": "Tiered research system: quick, deep, and pro",
-    "longDescription": "A three-tier research system (quick-research, deep-research, deep-research-pro) with shared research rules, workspace reconstruction, and composable subagent patterns. Quick-research is designed to be absorbed as a subagent by other workflows.",
+    "shortDescription": "Research agents: quick, deep, and pro",
+    "longDescription": "A research-agent package centered on named orchestrators and worker agents. The Codex plugin distributes reusable skills and MCP config; the installer also lays down matching custom-agent files under ~/.codex/agents so deep-research and deep-research-pro can fan out to workers.",
     "developerName": "Zichao Yang",
     "category": "Productivity",
     "capabilities": [
@@ -30,9 +32,9 @@
     ],
     "websiteURL": "https://github.com/yangzichao/gluon-agent",
     "defaultPrompt": [
-      "Use quick-research to look up a focused question and return sourced findings.",
-      "Use deep-research to investigate a topic and produce a source-backed report.",
-      "Use deep-research-pro for an exhaustive, unbounded research investigation."
+      "Use the deep-research agent to investigate a topic and delegate worker agents.",
+      "Use the deep-research-pro agent for an exhaustive investigation with verification workers.",
+      "Use the quick-research agent for a fast, single-agent sourced answer."
     ],
     "brandColor": "#10A37F"
   }

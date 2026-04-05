@@ -1,6 +1,7 @@
 ---
 name: quick-research
 description: Run a fast, single-agent research pass for focused questions. No subagent decomposition. Designed to be invoked as a worker by other workflows or used standalone for time-sensitive lookups.
+allowed-tools: Read, Write, Bash, WebSearch, WebFetch
 ---
 
 # Quick Research
@@ -8,6 +9,18 @@ description: Run a fast, single-agent research pass for focused questions. No su
 Use this skill for focused research questions that need a sourced answer fast: fact-checking a claim, finding the current state of a technology, getting a quick competitive snapshot, answering a specific technical question, or feeding findings into a larger workflow.
 
 This is the **lightweight** tier of the research system. No subagent decomposition, no elaborate plan board, no multi-pass verification. One agent, one focused loop, fast turnaround.
+
+> **CRITICAL OUTPUT RULE — READ FIRST**
+>
+> When invoked standalone, ALL output files MUST go into the `deep-research/` directory (create it if missing).
+> Filenames MUST use the template: `YYYY-MM-DD-HHSS-topic.md`
+>
+> Example: `deep-research/2026-03-30-1423-react-vs-vue.md`
+>
+> **NEVER** write reports to the project root or any other directory.
+> **NEVER** use arbitrary filenames like `report.md` or `workspace.md`.
+> Derive `HHSS` from the current hour and second (24h, no separator).
+> Derive `topic` as a short lowercase hyphenated slug from the research question.
 
 ## Objective
 
@@ -68,7 +81,7 @@ Produce output in the structured format below.
 
 Stop and produce output when ANY of the following is true:
 
-- The core claim is answered with at least two independent supporting sources (matching the verification step in the objective). If only one source was found within budget, report the answer but mark confidence as "low — single source only".
+- The core claim is answered with at least two independent supporting sources. If only one source was found within budget, report the answer but mark confidence as "low — single source only".
 - You've exhausted the query budget.
 - The question is unanswerable with web sources (say so explicitly).
 
@@ -116,12 +129,6 @@ When invoked directly, create or reuse a `deep-research/` directory in the curre
 - [Source Title](url)
 ```
 
-Writer rules for notation and special characters:
-
-- Preserve mathematical notation exactly. Do not strip or reinterpret `$`, `\`, `_`, `^`, `{}`, `[]`, or `*` when they are part of a formula.
-- If formula rendering support is uncertain, prefer backticks or fenced code blocks over raw inline Markdown math.
-- Check that dollar signs used for currency, variables, and math delimiters remain unambiguous in the final output.
-
 ### Subagent mode (invoked by a parent orchestrator)
 
 When invoked as a worker by another skill (deep-research, deep-research-pro, or any other workflow), return findings in this structured format so the parent can consume them:
@@ -146,6 +153,11 @@ Recommended follow-up:
 ```
 
 This format is designed to be directly ingestible by the evolving report of a parent deep-research orchestrator.
+
+- When writing mathematical formulas or expressions, preserve special characters exactly. Do not accidentally rewrite or strip `$`, `\`, `_`, `^`, `{}`, `[]`, or `*` when they are part of notation.
+- Prefer fenced code blocks for literal formulas, pseudo-LaTeX, or syntax examples that must not be interpreted by Markdown.
+- Use inline math only when the renderer is likely to support it; otherwise present the expression in backticks or a fenced block so the formula survives intact.
+- If a sentence mixes prose and notation, check the final text to ensure currency symbols, shell variables, and math delimiters are not confused with each other.
 
 ## What this skill does NOT do
 

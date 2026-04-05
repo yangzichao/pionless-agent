@@ -1,19 +1,35 @@
 # gluon-agent
 
-This repository maintains a shared plugin codebase for Claude Code and OpenAI Codex.
+This repository maintains a cross-platform research agent package for Claude Code and OpenAI Codex.
+
+## Architecture
+
+Agents are the brains (orchestration logic, turn protocol, Ralph loop enforcement). Skills are reference material (research rules, writing rules, report templates).
+
+## Single Source of Truth
+
+All agent definitions live in `src/agents/` as Claude-format .md files with an extended `codex:` frontmatter section. Build.sh generates both platforms:
+
+- `claude/agents/*.md` — Claude Code agents (codex section stripped)
+- `codex/agents/*.toml` — Codex agents (converted format)
+
+## Modular Skills
+
+Skill content is decomposed into small modules in `src/skills/includes/`. Source SKILL.md files use `<!-- include: includes/filename.md -->` markers that build.sh expands at build time.
 
 ## Working Rules
 
-- put reusable skills under `shared/skills/`
-- put reusable MCP configuration in `shared/.mcp.json`
-- keep Claude-only files under `claude/`
-- keep Codex-only files under `codex/`
-- run `bash build.sh` to assemble `dist/claude-plugin` and `dist/codex-plugin`
+- Edit agents in `src/agents/` — never hand-edit `claude/agents/` or `codex/agents/`
+- Edit skill modules in `src/skills/includes/` — never hand-edit `shared/skills/`
+- Run `bash build.sh` to assemble all outputs
+- All research output goes to `deep-research/` using `YYYY-MM-DD-HHSS-topic.md` naming
 
-## Research Output
+## Agents
 
-All research skills (deep-research, deep-research-pro, quick-research) must write output to `deep-research/` using the naming template `YYYY-MM-DD-HHSS-topic.md`. Never write reports to the project root.
-
-## Goal
-
-Keep the shared layer as large as possible and platform-specific differences as thin as possible.
+| Agent | Role | Claude Model | Codex Model | Max Turns |
+|-------|------|-------------|-------------|-----------|
+| deep-research | Orchestrator (standard) | opus | gpt-5.4 | 40 |
+| deep-research-pro | Orchestrator (exhaustive) | opus | gpt-5.4 | 60 |
+| quick-research | Standalone lightweight | sonnet | gpt-5.4-mini | 12 |
+| research-worker | Evidence-gathering worker | sonnet | gpt-5.4-mini | 18 |
+| research-verifier | Contradiction-seeking worker | sonnet | gpt-5.4-mini | 18 |

@@ -1,6 +1,8 @@
 ---
 name: deep-research
 description: Run a deep research workflow using orchestrator-worker task decomposition, Ralph-loop iteration, workspace reconstruction, evidence verification, and answer-first report synthesis.
+model: claude-opus-4-6
+allowed-tools: Read, Write, Bash, WebSearch, WebFetch, Agent
 ---
 
 # Deep Research
@@ -8,6 +10,21 @@ description: Run a deep research workflow using orchestrator-worker task decompo
 Use this skill when the user asks for deep research, a literature review, a market or technical landscape scan, a source-backed report, or a long-horizon investigation.
 
 This is the **standard** tier of the research system. It balances depth with efficiency through budgeted iterations and workspace reconstruction. For exhaustive, unbounded research, see `deep-research-pro`. For fast, focused lookups (or to use as a subagent worker), see `quick-research`.
+
+> **CRITICAL OUTPUT RULE — READ FIRST**
+>
+> ALL output files MUST go into the `deep-research/` directory (create it if missing).
+> Filenames MUST use the template: `YYYY-MM-DD-HHSS-topic.md`
+> Workspace files: `YYYY-MM-DD-HHSS-topic.workspace.md`
+>
+> Example: `deep-research/2026-03-30-1423-ai-agent-frameworks.md`
+>
+> **NEVER** write reports to the project root or any other directory.
+> **NEVER** use arbitrary filenames like `report.md` or `workspace.md`.
+> Derive `HHSS` from the current hour and second (24h, no separator).
+> Derive `topic` as a short lowercase hyphenated slug from the research question.
+>
+> This rule also applies to all subagent workers spawned from this skill.
 
 ## Objective
 
@@ -30,7 +47,7 @@ Each allowed tool serves a distinct role in the research workflow:
 
 ### Subagent delegation
 
-Use subagents to parallelize independent investigation tracks within the budget:
+Use subagents to parallelize independent investigation tracks:
 
 - Each subagent gets a narrow objective, a list of seed queries, and acceptance criteria.
 - Subagents return structured findings: claims, evidence with provenance, confidence level, and unresolved questions (use the `quick-research` subagent output format).
@@ -42,7 +59,7 @@ Use subagents to parallelize independent investigation tracks within the budget:
 
 ### File-backed workspace reconstruction
 
-Workspace reconstruction only works if the workspace lives in a file, not just in conversation context. Follow this discipline:
+Workspace reconstruction only works if the workspace lives in a file, not just in conversation context:
 
 1. At project start, create or reuse a `deep-research/` directory in the current workspace.
 2. Derive a topic slug from the research question, then create a run prefix in the form `YYYY-MM-DD-HHSS-topic`.
@@ -134,9 +151,9 @@ Do not stop just because there is enough text. Stop when the report is substanti
 
 ### Query budget
 
-Aim for 15–25 total WebSearch calls per research job. If you reach 30, pause and reassess: are you deepening the right questions, or are you thrashing?
+Aim for 15-25 total WebSearch calls per research job. If you reach 30, pause and reassess: are you deepening the right questions, or are you thrashing?
 
-For WebFetch (deep reads), budget 8–15 page fetches. Prioritize primary sources and high-signal pages over skimming many low-value results.
+For WebFetch (deep reads), budget 8-15 page fetches. Prioritize primary sources and high-signal pages over skimming many low-value results.
 
 ### Subagent budget
 
@@ -144,13 +161,13 @@ Up to 10 subagent spawns per research job. Each subagent should handle an indepe
 
 ### Step budget
 
-A typical research job should complete in 4–8 Ralph loop iterations. If you reach 10 iterations without the completion gate passing, switch to wrap-up mode: finalize the best-effort report and clearly mark what remains unverified.
+A typical research job should complete in 4-8 Ralph loop iterations. If you reach 10 iterations without the completion gate passing, switch to wrap-up mode: finalize the best-effort report and clearly mark what remains unverified.
 
 ### Termination triggers
 
 Stop the Ralph loop and produce a final report when ANY of the following is true:
 
-- The completion gate (see below) passes.
+- The completion gate passes.
 - You have reached the step budget (10 iterations).
 - Two consecutive iterations produced no new evidence or changed no claims in the evolving report (diminishing returns).
 - All remaining open tasks are blocked with no viable search strategy left.
@@ -195,7 +212,15 @@ Use iterative deepening:
 
 Always write the final report into the `deep-research/` directory in the current workspace. The filename must start with `YYYY-MM-DD-HHSS-topic.md`, where `topic` is a short lowercase slug derived from the research question.
 
-Write the final output in answer-first structure. Use the following default template (adjust sections as needed, but always keep the skeleton):
+Write the final output in answer-first structure.
+
+Additional writing guidelines:
+
+- Lead every section with the conclusion, then support it.
+- Distinguish sourced facts from inference. Use phrases like "based on [source]" vs "this suggests that".
+- Keep the report actionable: a reader should be able to make a decision after the Executive Summary alone.
+
+Use the following default template (adjust sections as needed, but always keep the skeleton):
 
 ```markdown
 # [Report Title]
@@ -231,11 +256,6 @@ Write the final output in answer-first structure. Use the following default temp
 - [Source Title](url) — brief note on what it contributed
 ```
 
-Additional writing guidelines:
-
-- Lead every section with the conclusion, then support it.
-- Distinguish sourced facts from inference. Use phrases like "based on [source]" vs "this suggests that".
-- Keep the report actionable: a reader should be able to make a decision after the Executive Summary alone.
 - When writing mathematical formulas or expressions, preserve special characters exactly. Do not accidentally rewrite or strip `$`, `\`, `_`, `^`, `{}`, `[]`, or `*` when they are part of notation.
 - Prefer fenced code blocks for literal formulas, pseudo-LaTeX, or syntax examples that must not be interpreted by Markdown.
 - Use inline math only when the renderer is likely to support it; otherwise present the expression in backticks or a fenced block so the formula survives intact.
@@ -243,27 +263,46 @@ Additional writing guidelines:
 
 ## Default working template
 
-Use this internal structure while researching:
+Use this internal structure for the workspace file. The YAML `loop_state` header is machine-readable and MUST be updated every iteration.
 
-```text
-Research question:
-- ...
+```markdown
+---
+loop_state:
+  iteration: 1
+  gate_passed: false
+  gate_checklist:
+    main_question_answered: false
+    major_claims_sourced: false
+    contradictions_checked: false
+    uncertainty_explicit: false
+    report_structured: false
+  stale_iterations: 0
+  total_searches: 0
+  total_fetches: 0
+  total_subagents: 0
+---
 
-Plan Board:
-- [priority] subquestion -> expected evidence -> assigned to (orchestrator/subagent) -> status
+# Research question
+- [exact question]
+- [decision context]
+- [constraints]
 
-Evolving report:
-- current thesis
-- confirmed findings
-- contested findings
+# Plan Board
+| # | Subquestion | Priority | Evidence Type | Assigned To | Status |
+|---|-------------|----------|---------------|-------------|--------|
 
-Immediate context:
-- what changed in the last step
-- what still blocks confidence
-- next best action
+# Evolving report
+- Current thesis: ...
+- Confirmed findings: ...
+- Contested findings: ...
 
-Open tasks:
-- ...
+# Immediate context
+- Last step: ...
+- Blocking: ...
+- Next action: ...
+
+# Open tasks
+- [ ] ...
 ```
 
 ## Completion gate

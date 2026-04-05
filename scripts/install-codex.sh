@@ -5,14 +5,29 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 PLUGIN_NAME="gluon-agent"
 TARGET_PLUGIN_DIR="${HOME}/.codex/plugins/${PLUGIN_NAME}"
+TARGET_AGENT_DIR="${HOME}/.codex/agents"
 MARKETPLACE_DIR="${HOME}/.agents/plugins"
 MARKETPLACE_FILE="${MARKETPLACE_DIR}/marketplace.json"
 
 bash "$ROOT_DIR/build.sh"
 
-mkdir -p "${HOME}/.codex/plugins" "$MARKETPLACE_DIR"
+mkdir -p "${HOME}/.codex/plugins" "$TARGET_AGENT_DIR" "$MARKETPLACE_DIR"
 rm -rf "$TARGET_PLUGIN_DIR"
 cp -R "$ROOT_DIR/dist/codex-plugin" "$TARGET_PLUGIN_DIR"
+
+/usr/bin/python3 - "$ROOT_DIR/codex/agents" "$TARGET_AGENT_DIR" "$TARGET_PLUGIN_DIR" <<'PYTHON'
+import pathlib
+import sys
+
+source_dir = pathlib.Path(sys.argv[1])
+target_dir = pathlib.Path(sys.argv[2])
+plugin_root = sys.argv[3]
+
+for path in source_dir.glob("*.toml"):
+    content = path.read_text()
+    content = content.replace("__GLUON_PLUGIN_ROOT__", plugin_root)
+    (target_dir / path.name).write_text(content)
+PYTHON
 
 /usr/bin/python3 - "$MARKETPLACE_FILE" "$PLUGIN_NAME" <<'PYTHON'
 import json
@@ -61,7 +76,11 @@ PYTHON
 echo "Installed Codex plugin to:"
 echo "  $TARGET_PLUGIN_DIR"
 echo ""
+echo "Installed Codex custom agents to:"
+echo "  $TARGET_AGENT_DIR"
+echo ""
 echo "Updated personal marketplace:"
 echo "  $MARKETPLACE_FILE"
 echo ""
-echo "Restart Codex, then open the plugin directory and look for marketplace 'gluon-agent'."
+echo "Restart Codex, then use the named agents:"
+echo "  deep-research, deep-research-pro, quick-research, research-worker, research-verifier"

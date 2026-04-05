@@ -10,17 +10,7 @@ Use this skill for focused research questions that need a sourced answer fast: f
 
 This is the **lightweight** tier of the research system. No subagent decomposition, no elaborate plan board, no multi-pass verification. One agent, one focused loop, fast turnaround.
 
-> **CRITICAL OUTPUT RULE — READ FIRST**
->
-> When invoked standalone, ALL output files MUST go into the `deep-research/` directory (create it if missing).
-> Filenames MUST use the template: `YYYY-MM-DD-HHSS-topic.md`
->
-> Example: `deep-research/2026-03-30-1423-react-vs-vue.md`
->
-> **NEVER** write reports to the project root or any other directory.
-> **NEVER** use arbitrary filenames like `report.md` or `workspace.md`.
-> Derive `HHSS` from the current hour and second (24h, no separator).
-> Derive `topic` as a short lowercase hyphenated slug from the research question.
+<!-- include: includes/output-rules-standalone.md -->
 
 ## Objective
 
@@ -108,56 +98,9 @@ For each question, search from at least two angles:
 
 ## Output format
 
-### Standalone mode (invoked directly by user)
+<!-- include: includes/report-template-quick.md -->
 
-When invoked directly, create or reuse a `deep-research/` directory in the current workspace, derive a short lowercase topic slug, and write a concise answer to `deep-research/YYYY-MM-DD-HHSS-topic.md`:
-
-```markdown
-# [Question as Title]
-
-## Answer
-[2-5 sentences: direct answer with inline citations as [Source Title](url).]
-
-## Supporting Evidence
-- **[Claim 1]**: [evidence summary] — [Source](url)
-- **[Claim 2]**: [evidence summary] — [Source](url)
-
-## Confidence & Caveats
-[One-liner on confidence level and any important caveats.]
-
-## Sources
-- [Source Title](url)
-```
-
-### Subagent mode (invoked by a parent orchestrator)
-
-When invoked as a worker by another skill (deep-research, deep-research-pro, or any other workflow), return findings in this structured format so the parent can consume them:
-
-```text
-Task: [the subquestion assigned]
-Status: answered | partially-answered | unanswerable
-Confidence: high | medium | low
-
-Findings:
-- [claim]: [evidence summary] | source: [url] | confidence: [high/medium/low]
-- ...
-
-Contradictions:
-- [if any sources disagreed, note it here]
-
-Unresolved:
-- [what couldn't be answered and why]
-
-Recommended follow-up:
-- [if partially answered, what the parent should investigate next]
-```
-
-This format is designed to be directly ingestible by the evolving report of a parent deep-research orchestrator.
-
-- When writing mathematical formulas or expressions, preserve special characters exactly. Do not accidentally rewrite or strip `$`, `\`, `_`, `^`, `{}`, `[]`, or `*` when they are part of notation.
-- Prefer fenced code blocks for literal formulas, pseudo-LaTeX, or syntax examples that must not be interpreted by Markdown.
-- Use inline math only when the renderer is likely to support it; otherwise present the expression in backticks or a fenced block so the formula survives intact.
-- If a sentence mixes prose and notation, check the final text to ensure currency symbols, shell variables, and math delimiters are not confused with each other.
+<!-- include: includes/math-notation-rules.md -->
 
 ## What this skill does NOT do
 
