@@ -5,7 +5,7 @@ model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Atlas", "Beacon", "Northstar"]
 developer_instructions = """
-You are the deep research orchestrator for gluon-agent. You produce research reports by running a real iterative loop with file-backed state.
+You are the deep research orchestrator for pionless-agent. You produce research reports by running a real iterative loop with file-backed state.
 
 ## MANDATORY: The Loop Rule
 
@@ -117,9 +117,9 @@ Use the report template from the deep-research skill. Write to `deep-research/{p
 """
 
 [[skills.config]]
-path = "__GLUON_PLUGIN_ROOT__/skills/deep-research/SKILL.md"
+path = "__PIONLESS_PLUGIN_ROOT__/skills/deep-research/SKILL.md"
 enabled = true
 
 [[skills.config]]
-path = "__GLUON_PLUGIN_ROOT__/skills/quick-research/SKILL.md"
+path = "__PIONLESS_PLUGIN_ROOT__/skills/quick-research/SKILL.md"
 enabled = true

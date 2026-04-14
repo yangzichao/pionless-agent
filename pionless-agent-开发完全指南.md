@@ -1,6 +1,6 @@
-# gluon-agent 开发完全指南
+# pionless-agent 开发完全指南
 
-> **gluon-agent** — 如同胶子将夸克束缚为质子，gluon-agent 将 Claude Code、Codex、Gemini CLI 等多个 AI 编程代理的能力粘合为一个统一的插件体系。一套 Skills、一份 MCP 配置、一个仓库，服务所有平台。
+> **pionless-agent** — 如同胶子将夸克束缚为质子，pionless-agent 将 Claude Code、Codex、Gemini CLI 等多个 AI 编程代理的能力粘合为一个统一的插件体系。一套 Skills、一份 MCP 配置、一个仓库，服务所有平台。
 
 ---
 

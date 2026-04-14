@@ -24,9 +24,9 @@ jobs:
 
       - name: Verify committed plugin package is up to date
         run: |
-          if ! git diff --quiet -- plugins/gluon-agent; then
-            echo "Generated plugin package is out of date. Run 'bash build.sh' and commit the updated files under plugins/gluon-agent/."
-            git diff -- plugins/gluon-agent
+          if ! git diff --quiet -- plugins/pionless-agent; then
+            echo "Generated plugin package is out of date. Run 'bash build.sh' and commit the updated files under plugins/pionless-agent/."
+            git diff -- plugins/pionless-agent
             exit 1
           fi
 
@@ -47,6 +47,6 @@ jobs:
       - name: Upload repo plugin artifact
         uses: actions/upload-artifact@v4
         with:
-          name: gluon-agent-plugin
-          path: plugins/gluon-agent
+          name: pionless-agent-plugin
+          path: plugins/pionless-agent
           include-hidden-files: true

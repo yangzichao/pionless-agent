@@ -3,7 +3,7 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-PLUGIN_NAME="gluon-agent"
+PLUGIN_NAME="pionless-agent"
 TARGET_PLUGIN_DIR="${HOME}/.codex/plugins/${PLUGIN_NAME}"
 TARGET_AGENT_DIR="${HOME}/.codex/agents"
 MARKETPLACE_DIR="${HOME}/.agents/plugins"
@@ -25,7 +25,7 @@ plugin_root = sys.argv[3]
 
 for path in source_dir.glob("*.toml"):
     content = path.read_text()
-    content = content.replace("__GLUON_PLUGIN_ROOT__", plugin_root)
+    content = content.replace("__PIONLESS_PLUGIN_ROOT__", plugin_root)
     (target_dir / path.name).write_text(content)
 PYTHON
 
@@ -38,9 +38,9 @@ marketplace_file = pathlib.Path(sys.argv[1])
 plugin_name = sys.argv[2]
 
 data = {
-    "name": "gluon-agent",
+    "name": "pionless-agent",
     "interface": {
-        "displayName": "gluon-agent"
+        "displayName": "pionless-agent"
     },
     "plugins": []
 }
@@ -48,9 +48,9 @@ data = {
 if marketplace_file.exists():
     data = json.loads(marketplace_file.read_text())
 
-data.setdefault("name", "gluon-agent")
+data.setdefault("name", "pionless-agent")
 data.setdefault("interface", {})
-data["interface"].setdefault("displayName", "gluon-agent")
+data["interface"].setdefault("displayName", "pionless-agent")
 data.setdefault("plugins", [])
 
 entry = {

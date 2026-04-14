@@ -1,14 +1,14 @@
 {
-  "name": "gluon-agent",
+  "name": "pionless-agent",
   "interface": {
-    "displayName": "gluon-agent"
+    "displayName": "pionless-agent"
   },
   "plugins": [
     {
-      "name": "gluon-agent",
+      "name": "pionless-agent",
       "source": {
         "source": "local",
-        "path": "./plugins/gluon-agent"
+        "path": "./plugins/pionless-agent"
       },
       "policy": {
         "installation": "AVAILABLE",

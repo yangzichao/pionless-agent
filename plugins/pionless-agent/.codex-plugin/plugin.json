@@ -1,5 +1,5 @@
 {
-  "name": "gluon-agent",
+  "name": "pionless-agent",
   "version": "0.2.0",
   "description": "Cross-platform research agent package. Codex ships shared research skills through the plugin and installs matching custom-agent templates separately under ~/.codex/agents.",
   "skills": "./skills/",
@@ -8,8 +8,8 @@
     "name": "Zichao Yang",
     "url": "https://github.com/yangzichao"
   },
-  "homepage": "https://github.com/yangzichao/gluon-agent",
-  "repository": "https://github.com/yangzichao/gluon-agent",
+  "homepage": "https://github.com/yangzichao/pionless-agent",
+  "repository": "https://github.com/yangzichao/pionless-agent",
   "license": "MIT",
   "keywords": [
     "codex",
@@ -21,7 +21,7 @@
     "mcp"
   ],
   "interface": {
-    "displayName": "gluon-agent",
+    "displayName": "pionless-agent",
     "shortDescription": "Research agents: quick, deep, and pro",
     "longDescription": "A research-agent package centered on named orchestrators and worker agents. The Codex plugin distributes reusable skills and MCP config; the installer also lays down matching custom-agent files under ~/.codex/agents so deep-research and deep-research-pro can fan out to workers.",
     "developerName": "Zichao Yang",
@@ -30,7 +30,7 @@
       "Read",
       "Write"
     ],
-    "websiteURL": "https://github.com/yangzichao/gluon-agent",
+    "websiteURL": "https://github.com/yangzichao/pionless-agent",
     "defaultPrompt": [
       "Use the deep-research agent to investigate a topic and delegate worker agents.",
       "Use the deep-research-pro agent for an exhaustive investigation with verification workers.",

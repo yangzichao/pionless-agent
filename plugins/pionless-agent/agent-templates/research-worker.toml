@@ -58,5 +58,5 @@ Recommended follow-up:
 """
 
 [[skills.config]]
-path = "__GLUON_PLUGIN_ROOT__/skills/quick-research/SKILL.md"
+path = "__PIONLESS_PLUGIN_ROOT__/skills/quick-research/SKILL.md"
 enabled = true

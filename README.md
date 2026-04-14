@@ -1,6 +1,6 @@
-# gluon-agent
+# pionless-agent
 
-`gluon-agent` is a cross-platform research agent package for Claude Code and OpenAI Codex,
+`pionless-agent` is a cross-platform research agent package for Claude Code and OpenAI Codex,
 plus a **dual-agent code review CLI** that orchestrates Claude Code and Codex CLI together.
 
 This repository contains:
@@ -10,7 +10,7 @@ This repository contains:
 - Codex custom-agent templates in `codex/agents/`
 - Claude-specific manifest in `claude/.claude-plugin/`
 - Codex-specific manifest in `codex/.codex-plugin/`
-- a committed universal plugin package in `plugins/gluon-agent/`
+- a committed universal plugin package in `plugins/pionless-agent/`
 - a Claude marketplace in `.claude-plugin/marketplace.json`
 - `build.sh` to assemble runnable distributions under `dist/`
 - `.agents/plugins/marketplace.json` so Codex can discover the plugin from this repo
@@ -32,7 +32,7 @@ codex/                        # generated Codex platform output
   agents/
   .codex-plugin/plugin.json
 plugins/
-  gluon-agent/                # committed universal plugin for both platforms
+  pionless-agent/                # committed universal plugin for both platforms
 review-agent/                 # dual-agent code review CLI (Python)
   review_agent/
     cli.py                    # argparse entry point
@@ -54,7 +54,7 @@ This generates:
 
 - `dist/claude-plugin/`
 - `dist/codex-plugin/`
-- `plugins/gluon-agent/` as the committed repo plugin package for both platforms
+- `plugins/pionless-agent/` as the committed repo plugin package for both platforms
 
 Agent packaging differs by platform:
 
@@ -65,18 +65,18 @@ Agent packaging differs by platform:
 
 Repository:
 
-- [https://github.com/yangzichao/gluon-agent](https://github.com/yangzichao/gluon-agent)
+- [https://github.com/yangzichao/pionless-agent](https://github.com/yangzichao/pionless-agent)
 
 ### Claude Code
 
 True GitHub marketplace install is supported.
 
 ```bash
-/plugin marketplace add yangzichao/gluon-agent
-/plugin install gluon-agent@gluon-agent-marketplace
+/plugin marketplace add yangzichao/pionless-agent
+/plugin install pionless-agent@pionless-agent-marketplace
 ```
 
-This works because the repo publishes a marketplace at `.claude-plugin/marketplace.json` that points at `./plugins/gluon-agent`.
+This works because the repo publishes a marketplace at `.claude-plugin/marketplace.json` that points at `./plugins/pionless-agent`.
 
 ### Codex
 
@@ -85,17 +85,17 @@ Direct GitHub marketplace install is not documented in current Codex plugin docs
 1. Clone the repo and run the installer:
 
 ```bash
-git clone https://github.com/yangzichao/gluon-agent.git
-cd gluon-agent
+git clone https://github.com/yangzichao/pionless-agent.git
+cd pionless-agent
 bash scripts/install-codex.sh
 ```
 
 This installs:
 
-- the Codex plugin under `~/.codex/plugins/gluon-agent`
+- the Codex plugin under `~/.codex/plugins/pionless-agent`
 - custom research agents under `~/.codex/agents/`
 
-2. Or open the cloned repo in Codex and use the repo marketplace at `.agents/plugins/marketplace.json`, which exposes `gluon-agent` from `./plugins/gluon-agent`. In that mode you still need to copy `codex/agents/*.toml` into `.codex/agents/` or `~/.codex/agents/` if you want the named orchestrator agents.
+2. Or open the cloned repo in Codex and use the repo marketplace at `.agents/plugins/marketplace.json`, which exposes `pionless-agent` from `./plugins/pionless-agent`. In that mode you still need to copy `codex/agents/*.toml` into `.codex/agents/` or `~/.codex/agents/` if you want the named orchestrator agents.
 
 ## Test
 
@@ -129,9 +129,9 @@ Orchestrator agents (`deep-research`, `deep-research-pro`) spawn `research-worke
 **Claude Code**: Launch the orchestrator as the session agent:
 
 ```bash
-claude --agent gluon-agent:deep-research
+claude --agent pionless-agent:deep-research
 # or
-claude --agent gluon-agent:deep-research-pro
+claude --agent pionless-agent:deep-research-pro
 ```
 
 If you install the plugin and invoke the skill from a normal session (e.g. `/deep-research`), the skill runs inside the main Claude thread and can use the Agent tool to spawn workers — but only if Claude itself is the main agent. If `deep-research` is auto-delegated as a subagent, it will **not** be able to fan out.
@@ -244,4 +244,4 @@ code-review/2026-04-11-1522/
 
 The detailed design and platform comparison live in:
 
-- `gluon-agent-开发完全指南.md`
+- `pionless-agent-开发完全指南.md`

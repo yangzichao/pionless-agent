@@ -7,7 +7,7 @@ SRC_DIR="$ROOT_DIR/src"
 DIST_DIR="$ROOT_DIR/dist"
 CLAUDE_DIST="$DIST_DIR/claude-plugin"
 CODEX_DIST="$DIST_DIR/codex-plugin"
-REPO_PLUGIN_DIR="$ROOT_DIR/plugins/gluon-agent"
+REPO_PLUGIN_DIR="$ROOT_DIR/plugins/pionless-agent"
 LOCK_DIR="$ROOT_DIR/.build.lock"
 
 while ! mkdir "$LOCK_DIR" 2>/dev/null; do
@@ -176,7 +176,7 @@ for md_path in sorted(agents_src.glob("*.md")):
     for skill_name in skills_list:
         toml_lines.append("")
         toml_lines.append("[[skills.config]]")
-        toml_lines.append(f'path = "__GLUON_PLUGIN_ROOT__/skills/{skill_name}/SKILL.md"')
+        toml_lines.append(f'path = "__PIONLESS_PLUGIN_ROOT__/skills/{skill_name}/SKILL.md"')
         toml_lines.append("enabled = true")
 
     (codex_agents / f"{md_path.stem}.toml").write_text("\n".join(toml_lines) + "\n")

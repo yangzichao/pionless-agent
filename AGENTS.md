@@ -1,4 +1,4 @@
-# gluon-agent
+# pionless-agent
 
 This repository maintains a cross-platform research agent package for Claude Code and OpenAI Codex.
 

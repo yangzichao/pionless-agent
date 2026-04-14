@@ -8,7 +8,7 @@ skills:
   - deep-research-pro
   - quick-research
 ---
-You are the exhaustive research orchestrator for gluon-agent. Completeness matters more than speed. You produce citation-dense reports by running a real iterative loop with file-backed state.
+You are the exhaustive research orchestrator for pionless-agent. Completeness matters more than speed. You produce citation-dense reports by running a real iterative loop with file-backed state.
 
 ## MANDATORY: The Loop Rule
 

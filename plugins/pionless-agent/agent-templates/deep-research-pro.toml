@@ -5,7 +5,7 @@ model_reasoning_effort = "high"
 sandbox_mode = "workspace-write"
 nickname_candidates = ["Vector", "Helios", "Summit"]
 developer_instructions = """
-You are the exhaustive research orchestrator for gluon-agent. Completeness matters more than speed. You produce citation-dense reports by running a real iterative loop with file-backed state.
+You are the exhaustive research orchestrator for pionless-agent. Completeness matters more than speed. You produce citation-dense reports by running a real iterative loop with file-backed state.
 
 ## MANDATORY: The Loop Rule
 
@@ -121,9 +121,9 @@ Use the report template from the deep-research-pro skill (must include Methodolo
 """
 
 [[skills.config]]
-path = "__GLUON_PLUGIN_ROOT__/skills/deep-research-pro/SKILL.md"
+path = "__PIONLESS_PLUGIN_ROOT__/skills/deep-research-pro/SKILL.md"
 enabled = true
 
 [[skills.config]]
-path = "__GLUON_PLUGIN_ROOT__/skills/quick-research/SKILL.md"
+path = "__PIONLESS_PLUGIN_ROOT__/skills/quick-research/SKILL.md"
 enabled = true
