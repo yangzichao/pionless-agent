@@ -13,13 +13,13 @@ This is the **lightweight** tier of the research system. No subagent decompositi
 > **CRITICAL OUTPUT RULE — READ FIRST**
 >
 > When invoked standalone, ALL output files MUST go into the `deep-research/` directory (create it if missing).
-> Filenames MUST use the template: `YYYY-MM-DD-HHSS-topic.md`
+> Filenames MUST use the template: `YYYY-MM-DD-HHMM-topic.md`
 >
 > Example: `deep-research/2026-03-30-1423-react-vs-vue.md`
 >
 > **NEVER** write reports to the project root or any other directory.
 > **NEVER** use arbitrary filenames like `report.md` or `workspace.md`.
-> Derive `HHSS` from the current hour and second (24h, no separator).
+> Derive `HHMM` from the current hour and minute (24h, no separator).
 > Derive `topic` as a short lowercase hyphenated slug from the research question.
 
 ## Objective
@@ -35,7 +35,7 @@ Produce a concise, sourced answer to a focused question within a tight budget. O
 
 - **WebSearch**: primary discovery tool. Generate 2-3 query variants per question (exact-match + semantic + one alternative angle).
 - **WebFetch**: deep-read 2-4 high-value pages. Don't skim many pages—read the best ones.
-- **Write**: when invoked standalone, write the final output into `deep-research/YYYY-MM-DD-HHSS-topic.md`. When running as a subagent, return findings in the structured format below instead.
+- **Write**: when invoked standalone, write the final output into `deep-research/YYYY-MM-DD-HHMM-topic.md`. When running as a subagent, return findings in the structured format below instead.
 - **Read**: if workspace state was provided by a parent orchestrator, read it to understand context.
 - **Bash**: quick data processing or computation if needed.
 
@@ -110,7 +110,7 @@ For each question, search from at least two angles:
 
 ### Standalone mode (invoked directly by user)
 
-When invoked directly, create or reuse a `deep-research/` directory in the current workspace, derive a short lowercase topic slug, and write a concise answer to `deep-research/YYYY-MM-DD-HHSS-topic.md`:
+When invoked directly, create or reuse a `deep-research/` directory in the current workspace, derive a short lowercase topic slug, and write a concise answer to `deep-research/YYYY-MM-DD-HHMM-topic.md`:
 
 ```markdown
 # [Question as Title]

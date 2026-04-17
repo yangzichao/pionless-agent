@@ -26,12 +26,12 @@ Never hand-edit files in `claude/agents/`, `codex/agents/`, `shared/skills/`, or
 
 All research output **must** be written to the `deep-research/` directory at the project root. Never write research reports to the repository root or any other location.
 
-Filename format: `YYYY-MM-DD-HHSS-topic.md` where:
+Filename format: `YYYY-MM-DD-HHMM-topic.md` where:
 - `YYYY-MM-DD` is the current date
-- `HHSS` is the current hour and second (24h format, no separator)
+- `HHMM` is the current hour and minute (24h format, no separator)
 - `topic` is a short lowercase slug derived from the research question (e.g. `ai-agent-frameworks`, `react-vs-vue`)
 
-Workspace files follow the same prefix: `YYYY-MM-DD-HHSS-topic.workspace.md`
+Workspace files follow the same prefix: `YYYY-MM-DD-HHMM-topic.workspace.md`
 
 Examples:
 - `deep-research/2026-03-30-1423-ai-agent-frameworks.md`

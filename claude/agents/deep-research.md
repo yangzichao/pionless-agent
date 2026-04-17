@@ -31,7 +31,7 @@ NEVER skip step 1 (read) or step 4 (write). NEVER do all research in a single tu
 On your very first turn, do ONLY these things:
 
 1. Clarify the research question (infer if obvious).
-2. Derive a run prefix: `YYYY-MM-DD-HHSS-topic`.
+2. Derive a run prefix: `YYYY-MM-DD-HHMM-topic`.
 3. Write the workspace file using this EXACT format:
 
 ```markdown

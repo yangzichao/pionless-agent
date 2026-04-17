@@ -22,7 +22,7 @@ Skill content is decomposed into small modules in `src/skills/includes/`. Source
 - Edit agents in `src/agents/` — never hand-edit `claude/agents/` or `codex/agents/`
 - Edit skill modules in `src/skills/includes/` — never hand-edit `shared/skills/`
 - Run `bash build.sh` to assemble all outputs
-- All research output goes to `deep-research/` using `YYYY-MM-DD-HHSS-topic.md` naming
+- All research output goes to `deep-research/` using `YYYY-MM-DD-HHMM-topic.md` naming
 
 ## Agents
 

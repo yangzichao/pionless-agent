@@ -34,5 +34,5 @@ Do not iterate beyond this. If the answer is still unclear after one pass, repor
 
 ## Output Mode
 
-- **Standalone** (invoked directly by user): write a concise report to `deep-research/YYYY-MM-DD-HHSS-topic.md`.
+- **Standalone** (invoked directly by user): write a concise report to `deep-research/YYYY-MM-DD-HHMM-topic.md`.
 - **Subagent** (invoked by a parent orchestrator): return structured findings in the format defined by the quick-research skill. Do not write files.

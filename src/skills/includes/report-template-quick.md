@@ -1,6 +1,6 @@
 ### Standalone mode (invoked directly by user)
 
-When invoked directly, create or reuse a `deep-research/` directory in the current workspace, derive a short lowercase topic slug, and write a concise answer to `deep-research/YYYY-MM-DD-HHSS-topic.md`:
+When invoked directly, create or reuse a `deep-research/` directory in the current workspace, derive a short lowercase topic slug, and write a concise answer to `deep-research/YYYY-MM-DD-HHMM-topic.md`:
 
 ```markdown
 # [Question as Title]

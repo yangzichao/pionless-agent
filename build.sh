@@ -117,13 +117,38 @@ def parse_frontmatter(text):
     return fm, body
 
 
+def escape_toml_string(s):
+    """Escape a Python string for inclusion inside a TOML basic (double-quoted) string."""
+    out = []
+    for ch in s:
+        if ch == '\\':
+            out.append('\\\\')
+        elif ch == '"':
+            out.append('\\"')
+        elif ch == '\b':
+            out.append('\\b')
+        elif ch == '\f':
+            out.append('\\f')
+        elif ch == '\n':
+            out.append('\\n')
+        elif ch == '\r':
+            out.append('\\r')
+        elif ch == '\t':
+            out.append('\\t')
+        elif ord(ch) < 0x20 or ord(ch) == 0x7f:
+            out.append(f'\\u{ord(ch):04x}')
+        else:
+            out.append(ch)
+    return ''.join(out)
+
+
 def to_toml_value(val):
     """Convert a Python value to a TOML-compatible string."""
     if isinstance(val, list):
-        items = ", ".join(f'"{v}"' for v in val)
+        items = ", ".join(f'"{escape_toml_string(str(v))}"' for v in val)
         return f"[{items}]"
     if isinstance(val, str):
-        return f'"{val}"'
+        return f'"{escape_toml_string(val)}"'
     return str(val)
 
 
@@ -154,17 +179,17 @@ for md_path in sorted(agents_src.glob("*.md")):
         skills_list = [skills_list]
 
     toml_lines = []
-    toml_lines.append(f'name = "{name}"')
+    toml_lines.append(f'name = {to_toml_value(name)}')
     if "description" in fm:
-        toml_lines.append(f'description = "{fm["description"]}"')
+        toml_lines.append(f'description = {to_toml_value(fm["description"])}')
 
     # Codex-specific fields
     if "model" in codex_cfg:
-        toml_lines.append(f'model = "{codex_cfg["model"]}"')
+        toml_lines.append(f'model = {to_toml_value(codex_cfg["model"])}')
     if "model_reasoning_effort" in codex_cfg:
-        toml_lines.append(f'model_reasoning_effort = "{codex_cfg["model_reasoning_effort"]}"')
+        toml_lines.append(f'model_reasoning_effort = {to_toml_value(codex_cfg["model_reasoning_effort"])}')
     if "sandbox_mode" in codex_cfg:
-        toml_lines.append(f'sandbox_mode = "{codex_cfg["sandbox_mode"]}"')
+        toml_lines.append(f'sandbox_mode = {to_toml_value(codex_cfg["sandbox_mode"])}')
     if "nickname_candidates" in codex_cfg:
         toml_lines.append(f'nickname_candidates = {to_toml_value(codex_cfg["nickname_candidates"])}')
 
@@ -176,7 +201,7 @@ for md_path in sorted(agents_src.glob("*.md")):
     for skill_name in skills_list:
         toml_lines.append("")
         toml_lines.append("[[skills.config]]")
-        toml_lines.append(f'path = "__PIONLESS_PLUGIN_ROOT__/skills/{skill_name}/SKILL.md"')
+        toml_lines.append(f'path = {to_toml_value(f"__PIONLESS_PLUGIN_ROOT__/skills/{skill_name}/SKILL.md")}')
         toml_lines.append("enabled = true")
 
     (codex_agents / f"{md_path.stem}.toml").write_text("\n".join(toml_lines) + "\n")

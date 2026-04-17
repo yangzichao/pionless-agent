@@ -25,7 +25,7 @@ Produce a concise, sourced answer to a focused question within a tight budget. O
 
 - **WebSearch**: primary discovery tool. Generate 2-3 query variants per question (exact-match + semantic + one alternative angle).
 - **WebFetch**: deep-read 2-4 high-value pages. Don't skim many pages—read the best ones.
-- **Write**: when invoked standalone, write the final output into `deep-research/YYYY-MM-DD-HHSS-topic.md`. When running as a subagent, return findings in the structured format below instead.
+- **Write**: when invoked standalone, write the final output into `deep-research/YYYY-MM-DD-HHMM-topic.md`. When running as a subagent, return findings in the structured format below instead.
 - **Read**: if workspace state was provided by a parent orchestrator, read it to understand context.
 - **Bash**: quick data processing or computation if needed.
 

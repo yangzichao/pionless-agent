@@ -14,14 +14,14 @@ This is the **unbounded** tier of the research system. Unlike `deep-research`, t
 > **CRITICAL OUTPUT RULE — READ FIRST**
 >
 > ALL output files MUST go into the `deep-research/` directory (create it if missing).
-> Filenames MUST use the template: `YYYY-MM-DD-HHSS-topic.md`
-> Workspace files: `YYYY-MM-DD-HHSS-topic.workspace.md`
+> Filenames MUST use the template: `YYYY-MM-DD-HHMM-topic.md`
+> Workspace files: `YYYY-MM-DD-HHMM-topic.workspace.md`
 >
 > Example: `deep-research/2026-03-30-1423-ai-agent-frameworks.md`
 >
 > **NEVER** write reports to the project root or any other directory.
 > **NEVER** use arbitrary filenames like `report.md` or `workspace.md`.
-> Derive `HHSS` from the current hour and second (24h, no separator).
+> Derive `HHMM` from the current hour and minute (24h, no separator).
 > Derive `topic` as a short lowercase hyphenated slug from the research question.
 >
 > This rule also applies to all subagent workers spawned from this skill.
@@ -62,11 +62,11 @@ Use subagents to parallelize independent investigation tracks:
 Workspace reconstruction only works if the workspace lives in a file, not just in conversation context:
 
 1. At project start, create or reuse a `deep-research/` directory in the current workspace.
-2. Derive a topic slug from the research question, then create a run prefix in the form `YYYY-MM-DD-HHSS-topic`.
-3. `Write` the workspace state to `deep-research/YYYY-MM-DD-HHSS-topic.workspace.md`.
+2. Derive a topic slug from the research question, then create a run prefix in the form `YYYY-MM-DD-HHMM-topic`.
+3. `Write` the workspace state to `deep-research/YYYY-MM-DD-HHMM-topic.workspace.md`.
 4. After each meaningful step (search, read, synthesis), overwrite that same workspace file.
 5. Before each new iteration, `Read` only that workspace file—do not rely on earlier conversation turns for research state.
-6. Write the final report to `deep-research/YYYY-MM-DD-HHSS-topic.md`.
+6. Write the final report to `deep-research/YYYY-MM-DD-HHMM-topic.md`.
 
 This ensures that old search results, raw page content, and intermediate reasoning are genuinely discarded from working context.
 
@@ -210,7 +210,7 @@ Use iterative deepening without artificial depth caps:
 
 ## Writing rules
 
-Always write the final report into the `deep-research/` directory in the current workspace. The filename must start with `YYYY-MM-DD-HHSS-topic.md`, where `topic` is a short lowercase slug derived from the research question.
+Always write the final report into the `deep-research/` directory in the current workspace. The filename must start with `YYYY-MM-DD-HHMM-topic.md`, where `topic` is a short lowercase slug derived from the research question.
 
 Write the final output in answer-first structure.
 

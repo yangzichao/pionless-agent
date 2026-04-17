@@ -1,4 +1,4 @@
-Always write the final report into the `deep-research/` directory in the current workspace. The filename must start with `YYYY-MM-DD-HHSS-topic.md`, where `topic` is a short lowercase slug derived from the research question.
+Always write the final report into the `deep-research/` directory in the current workspace. The filename must start with `YYYY-MM-DD-HHMM-topic.md`, where `topic` is a short lowercase slug derived from the research question.
 
 Write the final output in answer-first structure.
 
