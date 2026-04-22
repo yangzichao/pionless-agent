@@ -67,10 +67,15 @@ Wait for the user's response. Route on intent:
 
 ---
 
-## Phase 3 — Parallel dispatch
+## Phase 3 — Parallel dispatch with file-overlap serialization
 
 1. Read the finalized todo file. Collect all rows with `status: pending`.
-2. For each pending task, build a task card:
+
+2. **Compute file-overlap chains.** Parse each task's `Files` column into a set of paths (strip `:line` suffixes — we compare file-level). Build connected components: two tasks are in the same chain if their file sets intersect. Tasks with no file overlap with anyone become singleton chains.
+
+   Rationale: two workers touching the same file in separate worktrees can each "succeed" independently and then silently lose intent at merge time. Serializing them within a chain means the second task sees the first's fix already applied — eliminating the class of merge bug.
+
+3. For each pending task, build a task card:
 
 ```text
 task_id: <#>
@@ -81,34 +86,26 @@ verification_hint: <optional extra context>
 base_branch: <branch from the todo header>
 ```
 
-3. Dispatch in batches of `--max` (default 4). **Put all Agent calls in a single assistant message** so they run in parallel. Call shape:
+4. **Dispatch across chains, serial within each chain.** At most `--max` chains active simultaneously (default 4). Launch the **first pending task of each active chain** in one assistant message (single batch of up to `--max` parallel `Agent` calls with `isolation: "worktree"`, subagent_type `fix-worker`). Mark each dispatched row `dispatched`.
 
-```
-Agent({
-  description: "Fix task <#>: <brief>",
-  subagent_type: "fix-worker",
-  isolation: "worktree",
-  prompt: "<the task card>"
-})
-```
-
-Before dispatching, mark each task row as `dispatched`.
-
-4. When a batch returns, parse each worker's JSON output. Update the row:
-   - `status: fixed` → mark `fixed`; append the result to the "Worker results" section with `branch`, `worktree_path`, `summary`, `self_check_result`.
-   - `status: skipped` → mark `skipped`; append the skip reason.
-   - `status: failed` → mark `failed`; append the failure reason + any self-check output tail.
+5. When a worker returns, parse its JSON output. Update the row:
+   - `status: fixed` → mark `fixed`; append result to the "Worker results" section (branch, worktree_path, summary, self_check_result).
+   - `status: skipped` → mark `skipped`; append the skip reason + evidence the worker cited.
+   - `status: failed` (incl. reason `insufficient_verification`) → mark `failed`; append the failure reason + self-check output tail if present.
    - Malformed JSON → mark `failed` with `malformed_output`.
-5. Start the next batch. Repeat until all pending tasks are processed.
+
+6. **Merge-back for the chain's completed task now**, before dispatching the chain's next task. Run the phase 4 merge procedure (below) for this single task. Only after its branch is merged into the working branch do you dispatch the next task in this chain — the new worker will then see the previous fix already in its base worktree.
+
+7. Keep up to `--max` chains in flight. Whenever any chain's task is done (merged or terminal), dispatch that chain's next task (or pick up a new chain if this one is finished). Loop until every chain is done.
 
 ---
 
 ## Phase 4 — Merge back
 
-For each task with `status: fixed`, in task_id order:
+Called per task as it completes within its chain (not as a big batch at the end). For a task with `status: fixed`:
 
 1. `git merge --no-ff <branch>` against the current working branch.
-2. On conflict:
+2. On conflict (should be rare now that overlapping tasks are chained — if it still happens, the chain algorithm missed something or the worker touched a file outside its declared set):
    - `git status` to list conflicted paths.
    - Read each, resolve sensibly (prefer the worker's change; keep both if intents don't overlap; never silently drop changes).
    - `git add <files>` + `git commit` (default merge message is fine).
@@ -116,10 +113,18 @@ For each task with `status: fixed`, in task_id order:
 3. If merge fails for any other reason, mark `failed` with the error and continue.
 4. If `git merge` reports "Already up to date" (worker claimed fixed but worktree had no commits), mark `failed` with `empty_commit`.
 
-After all merges:
+**Per-worker cleanup — always, not just on `fixed`.** After processing any worker result that reported a non-empty `worktree_path` (regardless of status: `fixed`, `conflict-resolved`, `failed`, and even some `skipped` workers that accidentally committed something):
 
-5. Clean up each processed worker: `git worktree remove <path>` then `git branch -D <branch>`.
-6. Print a summary table (task#, final status, files touched).
+5. `git worktree remove <path>` — add `--force` if the path has uncommitted leftover changes.
+6. `git branch -D <branch>` — `-D` is safe because the merge is already done (for fixed) or the changes are being discarded (for failed).
+7. If any cleanup step errors (worktree already gone, branch not found), log it and continue — don't block.
+
+Workers with `status: skipped` that reported NO `worktree_path` auto-cleaned via the harness; skip their entry.
+
+After all chains complete:
+
+8. Sanity check: `git worktree list` — should show no leftover fix-worker worktrees. If any remain, list them for the user and attempt force-remove.
+9. Print a summary table (task#, final status, files touched).
 
 ---
 
