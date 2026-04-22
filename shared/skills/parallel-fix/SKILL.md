@@ -43,7 +43,9 @@ Max parallel: <N>
 | # | Severity | Files | Issue | Status |
 |---|----------|-------|-------|--------|
 | 1 | high | src/auth/login.py:42 | SQL injection in query | pending |
-| 2 | med  | ... | ... | pending |
+| 2 | med  | src/auth/session.py, src/auth/tokens.py:88 | stale token not invalidated | pending |
+
+**Files column format (strict):** comma-separated list of paths. Each entry is either `path` or `path:line` or `path:line-range`. The orchestrator parses this column by splitting on commas and stripping whitespace + any `:...` suffix to get the file-level set for chain computation. Do not use other delimiters (no `;`, no newlines inside the cell, no bracketed JSON). Workers receive the parsed list as a JSON array in their task card.
 
 ## Worker results
 _(filled in by orchestrator during dispatch)_
@@ -69,7 +71,21 @@ Wait for the user's response. Route on intent:
 
 ## Phase 3 — Parallel dispatch with file-overlap serialization
 
-1. Read the finalized todo file. Collect all rows with `status: pending`.
+1. Read the finalized todo file.
+
+   **Stranded-dispatch recovery (run this check first, before collecting pending rows).** Scan for rows whose `status` is `dispatched` and that have no corresponding entry in the "Worker results" section. These are stranded from a prior crashed or interrupted session — the orchestrator marked them dispatched but never recorded a worker result.
+
+   If any stranded `dispatched` rows are found:
+   - List each one: task #, severity, files, issue.
+   - Ask the user to choose one of three options:
+     - **(a) Reset to `pending`** — re-dispatch them in this run (recommended default).
+     - **(b) Mark as `failed`** — record reason `abandoned` and skip re-dispatch.
+     - **(c) Leave as-is** — skip them silently this run (user takes responsibility).
+   - If the user simply says "go again" or equivalent without specifying an option, apply **(a)** automatically and note this in your output.
+   - Apply the chosen action to all stranded rows before continuing.
+   - Do NOT silently skip `dispatched` rows — silent data loss is worse than an interruption prompt.
+
+   After handling any stranded rows, collect all rows with `status: pending`.
 
 2. **Compute file-overlap chains.** Parse each task's `Files` column into a set of paths (strip `:line` suffixes — we compare file-level). Build connected components: two tasks are in the same chain if their file sets intersect. Tasks with no file overlap with anyone become singleton chains.
 
