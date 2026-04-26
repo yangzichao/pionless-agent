@@ -296,12 +296,6 @@ cp -R "$ROOT_DIR/shared/skills" "$CODEX_DIST/"
 cp "$ROOT_DIR/shared/.mcp.json" "$CLAUDE_DIST/"
 cp "$ROOT_DIR/shared/.mcp.json" "$CODEX_DIST/"
 
-# Copy shared scripts if present
-if [ -d "$ROOT_DIR/shared/scripts" ]; then
-  cp -R "$ROOT_DIR/shared/scripts" "$CLAUDE_DIST/"
-  cp -R "$ROOT_DIR/shared/scripts" "$CODEX_DIST/"
-fi
-
 # Platform-specific manifests
 cp -R "$ROOT_DIR/claude/.claude-plugin" "$CLAUDE_DIST/"
 cp -R "$ROOT_DIR/codex/.codex-plugin" "$CODEX_DIST/"
@@ -387,10 +381,6 @@ mkdir -p "$REPO_PLUGIN_DIR"
 # Expanded skills
 cp -R "$ROOT_DIR/shared/skills" "$REPO_PLUGIN_DIR/"
 cp "$ROOT_DIR/shared/.mcp.json" "$REPO_PLUGIN_DIR/"
-
-if [ -d "$ROOT_DIR/shared/scripts" ]; then
-  cp -R "$ROOT_DIR/shared/scripts" "$REPO_PLUGIN_DIR/"
-fi
 
 # Both platform manifests
 cp -R "$ROOT_DIR/claude/.claude-plugin" "$REPO_PLUGIN_DIR/"

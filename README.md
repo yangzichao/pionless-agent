@@ -239,9 +239,3 @@ code-review/2026-04-11-1522/
   codex.md      ← Codex's full review + verification notes
   debug/        ← (only with --dry-run or -v)
 ```
-
-## Reference
-
-The detailed design and platform comparison live in:
-
-- `pionless-agent-开发完全指南.md`

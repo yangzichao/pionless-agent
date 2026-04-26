@@ -1,4 +1,6 @@
 dist/
-deep-research/*.md
-!deep-research/.gitkeep
+deep-research/
 code-review/
+shared/skills/
+claude/agents/
+codex/agents/
