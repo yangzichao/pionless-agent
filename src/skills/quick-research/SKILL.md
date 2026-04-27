@@ -1,113 +1,81 @@
 ---
 name: quick-research
-description: Run a fast, single-agent research pass for focused questions. No subagent decomposition. Designed to be invoked as a worker by other workflows or used standalone for time-sensitive lookups.
-allowed-tools: Read, Write, Bash, WebSearch, WebFetch
+description: Use this skill when the user needs a fast, sourced answer to a focused factual or comparative question, or when a larger research workflow needs a single-pass research worker.
+metadata:
+  author: pionless-matrix
+  version: "1.0"
+  pionless.category: research
+  pionless.tier: quick
+  pionless.suggests-delegation: ""
 ---
 
 # Quick Research
 
-Use this skill for focused research questions that need a sourced answer fast: fact-checking a claim, finding the current state of a technology, getting a quick competitive snapshot, answering a specific technical question, or feeding findings into a larger workflow.
+Use this skill for one focused research question that needs a sourced answer in a single pass. Examples: fact-check a claim, look up the current state of a technology, answer a specific technical question, or produce findings for a larger research workflow.
 
-This is the **lightweight** tier of the research system. No subagent decomposition, no elaborate plan board, no multi-pass verification. One agent, one focused loop, fast turnaround.
+This skill is intentionally narrow: one pass, one focused loop, no subagent decomposition. If the question turns out to be broad or open-ended, escalate to the `deep-research` or `deep-research-pro` workflow instead.
 
-<!-- include: includes/output-rules-standalone.md -->
+## When to activate
 
-## Objective
+Activate when the host needs to:
 
-Produce a concise, sourced answer to a focused question within a tight budget. Operate as a single-agent research loop:
+- answer one focused question,
+- with sourced citations,
+- within a tight budget,
+- in a single pass.
 
-1. **Clarify** the question (infer if obvious).
-2. **Search** from 2-3 angles.
-3. **Verify** key claims with a second source when feasible within budget.
-4. **Synthesize** into a compact answer with citations.
+Do not activate for open-ended exploration, full literature reviews, or multi-track investigations.
 
-## Tool usage guide
+## Modes
 
-- **WebSearch**: primary discovery tool. Generate 2-3 query variants per question (exact-match + semantic + one alternative angle).
-- **WebFetch**: deep-read 2-4 high-value pages. Don't skim many pages—read the best ones.
-- **Write**: when invoked standalone, write the final output into `deep-research/YYYY-MM-DD-HHMM-topic.md`. When running as a subagent, return findings in the structured format below instead.
-- **Read**: if workspace state was provided by a parent orchestrator, read it to understand context.
-- **Bash**: quick data processing or computation if needed.
+This skill has two output modes. The host chooses which one fits.
 
-No Agent tool. This skill does not spawn subagents. It is designed to **be** a subagent.
+- **Standalone mode** — the user invoked this skill directly. Write a concise human-readable report using `assets/report-template-standalone.md`.
+- **Subagent mode** — a parent orchestrator invoked this skill as a worker. Return findings in the structured format defined by `assets/report-template-subagent.md` so the parent can ingest them.
 
-## Operating model
+## Workflow
 
-### 1. Frame the question (30 seconds)
+Guide the host agent through these four steps.
 
-Pin down:
+1. **Frame** the question. Pin down the exact ask and what "good enough" looks like. If the prompt is ambiguous, apply `references/framing-checklist.md` before searching.
+2. **Search** from 2–3 angles. Apply the source-tier rules in `references/source-policy.md` to triage results.
+3. **Verify** load-bearing claims. Apply `references/verification-policy.md` to decide when one source is enough and when a second is required.
+4. **Synthesize** using the right template for the active mode. Math and notation: see `references/math-notation-rules.md` if the answer involves formulas.
 
-- the exact question to answer
-- what "good enough" looks like (a number? a yes/no? a 3-item comparison?)
-- any constraints (recency, geography, domain)
+Stop after one pass plus at most one verification pass. See `references/budget.md`.
 
-If invoked as a subagent, these should come from the parent orchestrator's task card. If standalone, infer from the user's request.
+## Output convention
 
-### 2. Search (the core loop)
+If the host supports file writes and the project follows the `deep-research/` convention, write standalone reports to `deep-research/YYYY-MM-DD-HHMM-<topic>.md`. Otherwise return the report inline. Full convention in `references/output-conventions.md`.
 
-Run a tight search loop:
+## Resources
 
-1. Execute 2-3 WebSearch queries from different angles.
-2. Scan results for the most authoritative sources.
-3. WebFetch the top 2-4 pages.
-4. Extract key facts with provenance.
-5. If a critical claim has only one source, do one more targeted search to verify.
+- `references/framing-checklist.md` — turn an ambiguous prompt into a tight question.
+- `references/source-policy.md` — primary, authoritative-secondary, and weak source tiers.
+- `references/verification-policy.md` — required support per claim type and how to surface conflicts.
+- `references/budget.md` — search/fetch/iteration limits and termination triggers.
+- `references/output-conventions.md` — `deep-research/` directory and filename rules.
+- `references/math-notation-rules.md` — preserve math/code notation through Markdown.
+- `references/delegation-patterns.md` — read only if a parent orchestrator is composing multiple instances of this skill in parallel.
+- `assets/report-template-standalone.md` — final output for standalone mode.
+- `assets/report-template-subagent.md` — structured findings for subagent mode.
+- `assets/citation.schema.json` — machine-readable citation schema.
+- `scripts/triage_sources.py` — optional helper that ranks candidate URLs by source tier.
 
-Do not iterate beyond this. If the answer is still unclear after one pass, report what you found and what remains uncertain.
+## Tool usage
 
-### 3. Synthesize
+Skills do not grant tools. The host runtime decides what is permitted. Apply the rules below conditionally on what the host actually exposes.
 
-Produce output in the structured format below.
+- If a web-search tool is available, use it for discovery; generate 2–3 query variants per question (exact-match, semantic, one alternative angle).
+- If a web-fetch tool is available, deep-read 2–4 high-value pages rather than skimming many.
+- If shell access is available and Python is installed, run `python scripts/triage_sources.py urls.txt` to rank candidate sources before deep-reading. If shell access is unavailable, apply the same heuristics manually using `references/source-policy.md`.
+- If a file-write tool is available and the project follows the `deep-research/` convention, write the standalone report there. Otherwise return the report inline.
 
-## Budget and termination
+This skill does not spawn subagents. It is designed to **be** a subagent.
 
-### Hard budget
+## What this skill does not do
 
-- **WebSearch**: 5-10 calls maximum.
-- **WebFetch**: 2-5 page reads maximum.
-- **Iterations**: 1-2 passes. No Ralph loop. If the first pass doesn't answer the question, do one verification pass, then stop.
-
-### Termination triggers
-
-Stop and produce output when ANY of the following is true:
-
-- The core claim is answered with at least two independent supporting sources. If only one source was found within budget, report the answer but mark confidence as "low — single source only".
-- You've exhausted the query budget.
-- The question is unanswerable with web sources (say so explicitly).
-
-## Research rules
-
-### Source policy
-
-- Prefer primary sources: official docs, papers, first-party announcements.
-- For time-sensitive topics, verify current facts rather than relying on memory.
-- Always distinguish sourced facts from your own inference.
-
-### Verification policy
-
-- Key claims should have at least one supporting source; two if feasible within budget.
-- If sources conflict, note the conflict and state which source seems more reliable.
-- If evidence is weak, say so. Do not smooth over uncertainty.
-
-### Retrieval policy
-
-For each question, search from at least two angles:
-
-- exact-match query for specific terms
-- semantic/paraphrase query for broader recall
-
-## Output format
-
-<!-- include: includes/report-template-quick.md -->
-
-<!-- include: includes/math-notation-rules.md -->
-
-## What this skill does NOT do
-
-- No Plan Board construction (that's the orchestrator's job).
-- No Ralph loop (one pass, maybe two).
-- No subagent spawning (this IS the subagent).
-- No workspace reconstruction (context stays small naturally due to tight budget).
-- No exhaustive verification (that's deep-research-pro territory).
-
-This keeps the skill fast, predictable, and composable.
+- No plan-board construction (orchestrator territory).
+- No Ralph loop (one pass, optionally one verification pass).
+- No subagent spawning.
+- No exhaustive verification (use `deep-research-pro` if 3+ source corroboration is required).

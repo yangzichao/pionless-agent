@@ -1,65 +1,84 @@
 ---
 name: deep-research
-description: Run a deep research workflow using orchestrator-worker task decomposition, Ralph-loop iteration, workspace reconstruction, evidence verification, and answer-first report synthesis.
-model: claude-opus-4-6
-allowed-tools: Read, Write, Bash, WebSearch, WebFetch, Agent
+description: Use this skill for a bounded but thorough research workflow — literature reviews, market or technical landscape scans, source-backed reports, and long-horizon investigations that need plan-board decomposition, iterative deepening, and verified citations.
+metadata:
+  author: pionless-matrix
+  version: "1.0"
+  pionless.category: research
+  pionless.tier: standard
+  pionless.suggests-delegation: "subquestion-investigation contradiction-seeking verification"
 ---
 
 # Deep Research
 
 Use this skill when the user asks for deep research, a literature review, a market or technical landscape scan, a source-backed report, or a long-horizon investigation.
 
-This is the **standard** tier of the research system. It balances depth with efficiency through budgeted iterations and workspace reconstruction. For exhaustive, unbounded research, see `deep-research-pro`. For fast, focused lookups (or to use as a subagent worker), see `quick-research`.
+This is the **standard** tier. It balances depth with efficiency through budgeted iterations and workspace reconstruction. For exhaustive, unbounded research see `deep-research-pro`. For fast focused lookups (or use as a subagent worker) see `quick-research`.
 
-<!-- include: includes/output-rules-orchestrator.md -->
+## When to activate
 
-## Objective
+Activate when the host needs:
 
-Produce a high-confidence report without letting the working context bloat. Operate as a bounded deep-research agent built on three rules:
+- a multi-faceted question decomposed into 3–7 subquestions,
+- a citation-backed final report,
+- iterative deepening with contradiction checks,
+- a bounded budget on searches, fetches, and iterations.
 
-1. **Orchestrator-worker**: one lead thread manages the plan and delegates each investigation thread as an isolated task.
-2. **Ralph loop**: repeat research, synthesis, and verification until the quality gate passes or a real blocker remains.
-3. **Workspace reconstruction**: after every meaningful step, throw away noisy history and rebuild only the minimal working state.
+Do not activate for one-shot lookups (use `quick-research`) or for unbounded landscape scans (use `deep-research-pro`).
 
-## Tool usage guide
+## Operating principles
 
-Each allowed tool serves a distinct role in the research workflow:
+This skill rests on three principles. Apply all three throughout the workflow.
 
-- **WebSearch**: discover sources. Use for broad queries, finding primary documents, and contradiction-seeking searches. Generate 2-3 query variants per subquestion (exact-match, semantic, negation).
-- **WebFetch**: deep-read a specific URL. Use after WebSearch identifies a promising source. Extract key facts, data, and quotes with provenance.
-- **Write**: persist state to files. Use to save the workspace file and final report under `deep-research/`. This is critical—without writing state to a file, workspace reconstruction is only conceptual.
-- **Read**: reload persisted state. Use at the start of each new iteration to read the current workspace file from `deep-research/` back into context, replacing stale conversation history.
-- **Bash**: data processing, format conversion, or computation (e.g., calculating statistics, converting units, sorting tables).
-- **Agent** (if available): spawn isolated subagent workers for parallel investigation tracks. Each subagent receives only its task objective, relevant workspace context, and allowed tools. Budget: up to 10 subagent spawns per research job; prefer batching independent subquestions into parallel subagents over spawning one per query.
+1. **Orchestrator-worker.** One lead thread manages the plan and delegates each investigation thread as an isolated task. See `references/delegation-patterns.md`.
+2. **Ralph loop.** Repeat research → synthesis → verification until the completion gate passes or a real blocker remains. See `references/ralph-loop.md`.
+3. **Workspace reconstruction.** After every meaningful step, rebuild only the minimal working state from a persisted file rather than dragging in the full transcript. See `references/workspace-reconstruction.md`.
 
-<!-- include: includes/subagent-delegation.md -->
+## Workflow
 
-<!-- include: includes/workspace-reconstruction.md -->
+Guide the host agent through these five steps.
 
-## Operating model
+1. **Initialize the research contract.** Pin down the question, decision, output format, time sensitivity, and constraints. If the user did not specify, infer the smallest sensible contract and state the assumption.
+2. **Build the plan board.** 3–7 subquestions with priority, expected evidence type, and dependencies. See `references/plan-board.md`.
+3. **Run worker-style investigations.** Treat each subtask as a focused worker assignment with a narrow objective and explicit deliverable. Apply `references/source-policy.md`, `references/verification-policy.md`, `references/retrieval-policy.md`, and `references/depth-policy.md`.
+4. **Reconstruct the workspace after each step.** Use `assets/workspace-template.md`; persist to a file per `references/workspace-reconstruction.md`.
+5. **Execute the Ralph loop until the completion gate passes.** Gate criteria in `references/completion-gate.md`. Termination triggers in `references/budget.md`.
 
-<!-- include: includes/operating-model.md {SUBQUESTION_RANGE=3-7} {COMPLETION_STANDARD=substantively supported} -->
+## Output convention
 
-## Budget and termination
+Write workspace and final report to the project's `deep-research/` directory using the prefix `YYYY-MM-DD-HHMM-<topic>`. See `references/output-conventions.md`.
 
-<!-- include: includes/budget-standard.md -->
+## Resources
 
-## Research rules
+- `references/output-conventions.md` — `deep-research/` directory and filename rules.
+- `references/plan-board.md` — how to construct the 3–7 subquestion board.
+- `references/ralph-loop.md` — the iteration loop.
+- `references/workspace-reconstruction.md` — file-backed state protocol.
+- `references/source-policy.md` — primary, secondary, weak tiers.
+- `references/verification-policy.md` — 2-source rule and conflict handling.
+- `references/retrieval-policy.md` — query angles per subquestion.
+- `references/depth-policy.md` — iterative deepening (depth 0–3+).
+- `references/budget.md` — query, fetch, subagent, and step budgets; termination triggers.
+- `references/completion-gate.md` — what "done" means.
+- `references/delegation-patterns.md` — how a host with spawn capability can parallelize tracks.
+- `references/writing-guidelines.md` — answer-first structure, source vs inference.
+- `references/math-notation-rules.md` — preserve formulas and code through Markdown.
+- `assets/report-template.md` — final report skeleton.
+- `assets/workspace-template.md` — workspace file skeleton (mandatory Loop State + Gate Checklist).
 
-<!-- include: includes/research-rules-standard.md -->
+## Tool usage
 
-## Writing rules
+Skills do not grant tools. The host runtime decides what is permitted. Apply the rules below conditionally on what the host actually exposes.
 
-<!-- include: includes/writing-guidelines.md -->
+- If a web-search tool is available, use it for discovery; generate 2–3 query variants per subquestion (exact-match, semantic, contradiction-seeking).
+- If a web-fetch tool is available, deep-read promising sources after search identifies them.
+- If a file-write tool is available, persist the workspace to `deep-research/<prefix>.workspace.md` and the report to `deep-research/<prefix>.md`.
+- If a file-read tool is available, reload the workspace at the start of each iteration rather than relying on prior conversation turns.
+- If a shell tool is available, use it for data processing, format conversion, or computation when needed.
+- If the host supports spawning worker agents, follow `references/delegation-patterns.md` to parallelize independent tracks. If not, run the same worker-style passes sequentially in this thread.
 
-<!-- include: includes/report-template-standard.md -->
+## What this skill does not do
 
-<!-- include: includes/math-notation-rules.md -->
-
-## Default working template
-
-<!-- include: includes/workspace-template-standard.md -->
-
-## Completion gate
-
-<!-- include: includes/completion-gate-standard.md -->
+- No fast one-shot answers (use `quick-research`).
+- No unbounded research without termination (use `deep-research-pro`).
+- No code edits, deploys, or external side effects beyond file writes into `deep-research/`.

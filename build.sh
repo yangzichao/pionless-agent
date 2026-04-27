@@ -210,11 +210,16 @@ print("  Agents generated from src/agents/")
 PYTHON
 
 # ---------------------------------------------------------------------------
-# Step 1: Expand skill includes from src/skills/ into shared/skills/
+# Step 1: Copy canonical-tree skills from src/skills/ into shared/skills/
 # ---------------------------------------------------------------------------
+#
+# Each src/skills/<name>/ directory is a self-contained skill package per
+# docs/ideal-design/01-skill-anatomy.md: SKILL.md + optional references/,
+# assets/, scripts/. We copy the tree verbatim — no include expansion, no
+# fragment composition. The published skill is exactly what the source says.
 
 /usr/bin/python3 - "$SRC_DIR" "$ROOT_DIR" <<'PYTHON'
-import pathlib, re, sys
+import pathlib, shutil, sys
 
 src_dir = pathlib.Path(sys.argv[1])
 root_dir = pathlib.Path(sys.argv[2])
@@ -222,63 +227,33 @@ skills_src = src_dir / "skills"
 shared_skills = root_dir / "shared" / "skills"
 
 # Clean old expanded skills to avoid stale leftovers
-import shutil
 if shared_skills.exists():
     shutil.rmtree(shared_skills)
+shared_skills.mkdir(parents=True)
 
-# Pattern: <!-- include: includes/filename.md --> or with params {KEY=VALUE}
-INCLUDE_RE = re.compile(
-    r'^<!-- include: ([\w/.-]+\.md)\s*((?:\{[^}]+\}\s*)*)-->$'
-)
-PARAM_RE = re.compile(r'\{(\w+)=([^}]+)\}')
-
-
-def expand_includes(text, base_dir):
-    """Recursively expand include markers in text."""
-    lines = text.splitlines(keepends=True)
-    result = []
-    for line in lines:
-        stripped = line.strip()
-        m = INCLUDE_RE.match(stripped)
-        if m:
-            include_path = base_dir / m.group(1)
-            params_str = m.group(2)
-            params = dict(PARAM_RE.findall(params_str))
-
-            if include_path.exists():
-                content = include_path.read_text()
-                # Apply parameter substitution
-                for key, val in params.items():
-                    content = content.replace(f"{{{key}}}", val)
-                # Recursive expansion
-                content = expand_includes(content, base_dir)
-                result.append(content)
-                if not content.endswith("\n"):
-                    result.append("\n")
-            else:
-                print(f"  WARNING: include not found: {include_path}")
-                result.append(line)
-        else:
-            result.append(line)
-    return "".join(result)
-
-
-# Process each skill directory
+copied = []
 for skill_dir in sorted(skills_src.iterdir()):
-    if not skill_dir.is_dir() or skill_dir.name == "includes":
+    if not skill_dir.is_dir():
         continue
-    skill_md = skill_dir / "SKILL.md"
-    if not skill_md.exists():
+    if not (skill_dir / "SKILL.md").exists():
+        # Not a skill directory — skip silently. Surfaces a helpful error
+        # later if someone forgets the SKILL.md.
         continue
-
-    text = skill_md.read_text()
-    expanded = expand_includes(text, skills_src)
 
     out_dir = shared_skills / skill_dir.name
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "SKILL.md").write_text(expanded)
+    shutil.copytree(skill_dir, out_dir)
 
-print("  Skills expanded from src/skills/ -> shared/skills/")
+    # Drop any author-side caches/test artifacts that should not ship with the
+    # installed skill. These are explicitly listed in 01-skill-anatomy.md as
+    # "what does not belong in a skill folder" once published.
+    for cache in ("tests", "__pycache__"):
+        for path in out_dir.rglob(cache):
+            if path.is_dir():
+                shutil.rmtree(path)
+
+    copied.append(skill_dir.name)
+
+print(f"  Skills copied to shared/skills/: {', '.join(copied)}")
 PYTHON
 
 # ---------------------------------------------------------------------------
@@ -327,8 +302,12 @@ if [ -d "$ROOT_DIR/platforms/codex/agents" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# Step 3: Strip Codex skill frontmatter (Codex doesn't support model/tools)
+# Step 3: Strip Codex skill frontmatter to name + description only
 # ---------------------------------------------------------------------------
+#
+# Codex SKILL.md only consumes name/description for routing. The new
+# canonical frontmatter also has a `metadata:` block (author, version,
+# pionless.* tags) — we drop that on Codex but retain it for Claude/repo.
 
 /usr/bin/python3 - "$CODEX_DIST" <<'PYTHON'
 import pathlib
@@ -336,7 +315,52 @@ import re
 import sys
 
 codex_root = pathlib.Path(sys.argv[1])
-KEEP_KEYS = {"name:", "description:"}
+KEEP_KEYS = ("name:", "description:")
+
+
+def strip_to_name_description(frontmatter_lines):
+    """Keep only name and description (with multi-line description blocks).
+
+    Drops every other top-level key, including the `metadata:` block and any
+    legacy `model:` / `allowed-tools:` fields if they appear.
+    """
+    kept = []
+    in_kept_multiline = False  # True while inside a description: |... block
+    in_dropped_block = False   # True while inside a non-kept top-level key (e.g. metadata:)
+
+    for line in frontmatter_lines:
+        is_indented = line.startswith(" ") or line.startswith("\t")
+        stripped = line.strip()
+
+        if not is_indented and stripped:
+            # New top-level key — decide whether to keep it.
+            in_kept_multiline = False
+            in_dropped_block = False
+            if any(stripped.startswith(k) for k in KEEP_KEYS):
+                kept.append(line)
+                # Detect multi-line scalar style: `description: |`, `>`, `|-`, `>-`.
+                if stripped in {
+                    "description: |", "description: >",
+                    "description: |-", "description: >-",
+                }:
+                    in_kept_multiline = True
+            else:
+                in_dropped_block = True
+            continue
+
+        # Indented continuation line.
+        if is_indented:
+            if in_kept_multiline:
+                kept.append(line)
+            # If in_dropped_block, drop silently.
+            continue
+
+        # Blank line — preserve only if we are still inside something kept.
+        if not stripped and in_kept_multiline:
+            kept.append(line)
+
+    return kept
+
 
 for path in codex_root.rglob("SKILL.md"):
     text = path.read_text()
@@ -344,25 +368,8 @@ for path in codex_root.rglob("SKILL.md"):
     if not match:
         continue
 
-    frontmatter = match.group(1).splitlines()
     body = match.group(2)
-    kept = []
-    keep_description_block = False
-
-    for line in frontmatter:
-        stripped = line.strip()
-        if any(stripped.startswith(k) for k in KEEP_KEYS):
-            kept.append(line)
-            keep_description_block = stripped in {"description: |", "description: >", "description: |-", "description: >-"}
-            continue
-
-        if keep_description_block and (line.startswith(" ") or line.startswith("\t")):
-            kept.append(line)
-            continue
-
-        if stripped and not (line.startswith(" ") or line.startswith("\t")):
-            keep_description_block = False
-
+    kept = strip_to_name_description(match.group(1).splitlines())
     if kept:
         path.write_text("---\n" + "\n".join(kept) + "\n---\n" + body)
 
@@ -409,14 +416,64 @@ if [ -d "$ROOT_DIR/platforms/codex/agents" ]; then
   cp -R "$ROOT_DIR/platforms/codex/agents/." "$REPO_PLUGIN_DIR/agent-templates/"
 fi
 
-# Strip repo plugin skills to keep Claude-compatible frontmatter
+# Defense-in-depth: strip any runtime-authority frontmatter that may have
+# crept into a skill source. Per docs/ideal-design/01-skill-anatomy.md,
+# skills must NOT declare model/tools/spawn — those belong to the host.
+# We keep name, description, and the metadata block (author, version, tags).
 /usr/bin/python3 - "$REPO_PLUGIN_DIR" <<'PYTHON'
 import pathlib
 import re
 import sys
 
 plugin_root = pathlib.Path(sys.argv[1])
-KEEP_KEYS = {"name:", "description:", "model:", "allowed-tools:"}
+KEEP_TOP_KEYS = ("name:", "description:", "metadata:")
+FORBIDDEN_TOP_KEYS = ("model:", "allowed-tools:", "tools:", "spawns-agents:")
+
+
+def filter_frontmatter(frontmatter_lines):
+    kept = []
+    in_kept_multiline = False
+    in_kept_block = False  # True while inside metadata: (an indented YAML object)
+    in_dropped_block = False
+
+    for line in frontmatter_lines:
+        is_indented = line.startswith(" ") or line.startswith("\t")
+        stripped = line.strip()
+
+        if not is_indented and stripped:
+            # New top-level key.
+            in_kept_multiline = False
+            in_kept_block = False
+            in_dropped_block = False
+            if any(stripped.startswith(k) for k in FORBIDDEN_TOP_KEYS):
+                # Defensive: drop the whole block.
+                in_dropped_block = True
+                continue
+            if any(stripped.startswith(k) for k in KEEP_TOP_KEYS):
+                kept.append(line)
+                if stripped == "metadata:" or stripped.endswith(":"):
+                    # `metadata:` is a nested object — keep its indented children.
+                    in_kept_block = True
+                if stripped in {
+                    "description: |", "description: >",
+                    "description: |-", "description: >-",
+                }:
+                    in_kept_multiline = True
+                continue
+            # Unknown top-level key — drop to be safe.
+            in_dropped_block = True
+            continue
+
+        if is_indented:
+            if in_kept_multiline or in_kept_block:
+                kept.append(line)
+            continue
+
+        if not stripped and (in_kept_multiline or in_kept_block):
+            kept.append(line)
+
+    return kept
+
 
 for path in plugin_root.rglob("SKILL.md"):
     text = path.read_text()
@@ -424,25 +481,8 @@ for path in plugin_root.rglob("SKILL.md"):
     if not match:
         continue
 
-    frontmatter = match.group(1).splitlines()
     body = match.group(2)
-    kept = []
-    keep_description_block = False
-
-    for line in frontmatter:
-        stripped = line.strip()
-        if any(stripped.startswith(k) for k in KEEP_KEYS):
-            kept.append(line)
-            keep_description_block = stripped in {"description: |", "description: >", "description: |-", "description: >-"}
-            continue
-
-        if keep_description_block and (line.startswith(" ") or line.startswith("\t")):
-            kept.append(line)
-            continue
-
-        if stripped and not (line.startswith(" ") or line.startswith("\t")):
-            keep_description_block = False
-
+    kept = filter_frontmatter(match.group(1).splitlines())
     if kept:
         path.write_text("---\n" + "\n".join(kept) + "\n---\n" + body)
 PYTHON

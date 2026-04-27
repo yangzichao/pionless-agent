@@ -1,65 +1,97 @@
 ---
 name: deep-research-pro
-description: Run an unlimited deep research workflow with full orchestrator-worker decomposition, aggressive verification, and no budget constraints. Use for PhD-level investigations, comprehensive landscape scans, and high-stakes decisions requiring exhaustive evidence.
-model: claude-opus-4-6
-allowed-tools: Read, Write, Bash, WebSearch, WebFetch, Agent
+description: Use this skill for exhaustive, unbounded research workflows where completeness matters more than speed — comprehensive literature reviews, full competitive landscape scans, regulatory deep-dives, and high-stakes decisions requiring 3+ source corroboration and a dedicated contradiction-seeking pass.
+metadata:
+  author: pionless-matrix
+  version: "1.0"
+  pionless.category: research
+  pionless.tier: pro
+  pionless.suggests-delegation: "subquestion-investigation contradiction-seeking verification methodology-audit"
 ---
 
 # Deep Research Pro
 
 Use this skill when the user asks for exhaustive research, a comprehensive literature review, a full competitive landscape, a regulatory deep-dive, or any investigation where completeness matters more than speed.
 
-This is the **unbounded** tier of the research system. Unlike `deep-research`, there are no soft limits on queries, page reads, or iterations. The agent should go as deep as the evidence requires.
+This is the **unbounded** tier. There are no soft caps on queries, fetches, or iterations — the workflow goes as deep as the evidence requires. For bounded research see `deep-research`. For fast lookups see `quick-research`.
 
-<!-- include: includes/output-rules-orchestrator.md -->
+## When to activate
 
-## Objective
+Activate when the host needs:
 
-Produce a high-confidence, citation-dense report by running an unbounded orchestrator-worker research loop with aggressive verification. Operate on three principles:
+- 5–12 subquestions investigated thoroughly,
+- 3+ independent sources per major claim,
+- a dedicated contradiction-seeking pass before finalization,
+- a citation-dense report with explicit methodology and contradictions sections,
+- no soft termination on query or iteration count.
 
-1. **Orchestrator-worker**: one lead thread manages the plan and delegates each investigation thread as an isolated subagent task.
-2. **Ralph loop**: repeat research, synthesis, and verification until the quality gate passes or a real blocker remains.
-3. **Workspace reconstruction**: after every meaningful step, throw away noisy history and rebuild only the minimal working state.
+Do not activate for tasks where a bounded budget is acceptable (use `deep-research`) or for one-shot lookups (use `quick-research`).
 
-## Tool usage guide
+## Operating principles
 
-Each allowed tool serves a distinct role:
+This skill rests on three principles. Apply all three throughout the workflow.
 
-- **WebSearch**: discover sources. Generate 3-5 query variants per subquestion (exact-match, semantic, negation, site-specific, temporal).
-- **WebFetch**: deep-read a specific URL. Use liberally after WebSearch identifies promising sources. Extract key facts, data, and quotes with provenance.
-- **Write**: persist state to files. Save workspace state and the final report under `deep-research/`.
-- **Read**: reload persisted state. Read the current workspace file from `deep-research/` at the start of each iteration—do not rely on earlier conversation turns.
-- **Bash**: data processing, format conversion, computation, or table generation.
-- **Agent** (if available): spawn isolated subagent workers for parallel investigation tracks. Each subagent receives only its task objective, relevant workspace context, and allowed tools. Subagent results are collected and synthesized by the orchestrator.
+1. **Orchestrator-worker.** One lead thread manages the plan and delegates each investigation thread as an isolated task. See `references/delegation-patterns.md`.
+2. **Ralph loop.** Repeat research → synthesis → verification → contradiction-seeking until the completion gate passes or every subquestion is genuinely saturated. See `references/ralph-loop.md`.
+3. **Workspace reconstruction.** After every meaningful step, rebuild only the minimal working state from a persisted file. See `references/workspace-reconstruction.md`.
 
-<!-- include: includes/subagent-delegation.md -->
+## Workflow
 
-<!-- include: includes/workspace-reconstruction.md -->
+Guide the host agent through these six steps.
 
-## Operating model
+1. **Initialize the research contract.** Pin down the question, decision, output format, time sensitivity, and constraints. State assumptions explicitly when the user did not specify.
+2. **Build the plan board.** 5–12 subquestions with priority, expected evidence type, dependencies, and depth target. See `references/plan-board.md`.
+3. **Run worker-style investigations.** Apply `references/source-policy.md`, `references/verification-policy.md`, `references/retrieval-policy.md`, `references/depth-policy.md`. Verification requires **3 independent sources** for major claims at this tier.
+4. **Reconstruct the workspace after each step.** Use `assets/workspace-template.md`; persist per `references/workspace-reconstruction.md`.
+5. **Run a dedicated contradiction-seeking pass before finalization.** This is mandatory at the pro tier. See `references/contradiction-seeking-pass.md`.
+6. **Execute the Ralph loop until the completion gate passes.** Gate criteria in `references/completion-gate.md`.
 
-<!-- include: includes/operating-model.md {SUBQUESTION_RANGE=5-12} {COMPLETION_STANDARD=exhaustively supported} -->
+## Output convention
 
-## Budget and termination
+Write workspace and final report to the project's `deep-research/` directory using the prefix `YYYY-MM-DD-HHMM-<topic>`. See `references/output-conventions.md`.
 
-<!-- include: includes/budget-pro.md -->
+## Resources
 
-## Research rules
+- `references/output-conventions.md` — `deep-research/` directory and filename rules.
+- `references/plan-board.md` — 5–12 subquestion board with depth targets.
+- `references/ralph-loop.md` — the iteration loop with a mandatory contradiction-seeking pass.
+- `references/workspace-reconstruction.md` — file-backed state protocol.
+- `references/source-policy.md` — primary, secondary, weak tiers; active disagreement-seeking.
+- `references/verification-policy.md` — 3-source rule, dedicated contradiction pass, third-source resolution.
+- `references/retrieval-policy.md` — 5 query angles per major subquestion.
+- `references/depth-policy.md` — uncapped iterative deepening.
+- `references/contradiction-seeking-pass.md` — the mandatory pre-finalization pass.
+- `references/efficiency-discipline.md` — saturation handling without hard caps.
+- `references/completion-gate.md` — pro-tier gate criteria.
+- `references/delegation-patterns.md` — parallel investigation, verifier split, methodology audit.
+- `references/writing-guidelines.md` — citation density, methodology section, contradictions section.
+- `references/math-notation-rules.md` — preserve formulas and code through Markdown.
+- `assets/report-template.md` — pro-tier report skeleton with Methodology and Contradictions sections.
+- `assets/workspace-template.md` — workspace skeleton with the pro-tier gate checklist.
 
-<!-- include: includes/research-rules-pro.md -->
+## Tool usage
 
-## Writing rules
+Skills do not grant tools. The host runtime decides what is permitted. Apply the rules below conditionally on what the host actually exposes.
 
-<!-- include: includes/writing-guidelines.md -->
+- If a web-search tool is available, use it liberally; generate **3–5 query variants** per major subquestion (exact-match, semantic, contradiction-seeking, site-specific, temporal).
+- If a web-fetch tool is available, deep-read promising sources without artificial caps.
+- If a file-write tool is available, persist the workspace to `deep-research/<prefix>.workspace.md` and the report to `deep-research/<prefix>.md`.
+- If a file-read tool is available, reload the workspace at the start of each iteration rather than relying on prior conversation turns.
+- If a shell tool is available, use it for data processing, format conversion, computation, or table generation.
+- If the host supports spawning worker agents, follow `references/delegation-patterns.md` to parallelize independent tracks. If not, run the same passes sequentially.
 
-<!-- include: includes/report-template-pro.md -->
+## Efficiency discipline
 
-<!-- include: includes/math-notation-rules.md -->
+There are no hard budgets at this tier, but discipline still applies:
 
-## Default working template
+- Do not repeat searches that have already been exhausted.
+- Track diminishing returns: if 3 consecutive searches on the same subquestion yield no new evidence, mark `saturated` and move on.
+- Prefer depth on high-value questions over breadth on low-value ones.
 
-<!-- include: includes/workspace-template-pro.md -->
+See `references/efficiency-discipline.md`.
 
-## Completion gate
+## What this skill does not do
 
-<!-- include: includes/completion-gate-pro.md -->
+- No fast one-shot answers (use `quick-research`).
+- No bounded research (use `deep-research` if a soft budget is acceptable).
+- No code edits, deploys, or external side effects beyond file writes into `deep-research/`.
