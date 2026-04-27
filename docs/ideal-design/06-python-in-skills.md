@@ -1,4 +1,4 @@
-## 7. Python in Skills
+## 6. Python in Skills
 
 Python scripts live in `scripts/` inside the skill folder. They are invoked by SKILL.md instructing the model to run a Bash command.
 

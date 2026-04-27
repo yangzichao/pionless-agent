@@ -8,9 +8,9 @@ The full original document is preserved at [ideal-design.md](ideal-design.md) fo
 
 1. [Skill Anatomy](01-skill-anatomy.md)
 2. [Agent Anatomy](02-agent-anatomy.md)
-3. [Top-Level Layout](03-top-level-layout.md)
-4. [Shared Fragments](04-shared-fragments.md)
-5. [Cross-Platform vs Claude-Only](05-cross-platform-vs-claude-only.md)
-6. [Agent-Orchestrates-Agent](06-agent-orchestrates-agent.md)
-7. [Python in Skills](07-python-in-skills.md)
+3. [Shared Fragments](03-shared-fragments.md)
+4. [Cross-Platform vs Claude-Only](04-cross-platform-vs-claude-only.md)
+5. [Agent-Orchestrates-Agent](05-agent-orchestrates-agent.md)
+6. [Python in Skills](06-python-in-skills.md)
+7. [Top-Level Layout](07-top-level-layout.md) — *deferred until 3–6 are finalized*
 8. [Worked Example](08-worked-example.md)

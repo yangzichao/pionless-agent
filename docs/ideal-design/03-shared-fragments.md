@@ -1,4 +1,4 @@
-## 4. Shared Fragments
+## 3. Shared Fragments
 
 When prompt content is reused across skills or agents — research rules, output gates, token budgets, writing style guides, citation rules — it lives in `src/shared/`. Duplicating prompt fragments is the fastest path to drift.
 

@@ -1,4 +1,4 @@
-## 6. Agent-Orchestrates-Agent
+## 5. Agent-Orchestrates-Agent
 
 When an orchestrator agent spawns worker agents, three structural options exist:
 

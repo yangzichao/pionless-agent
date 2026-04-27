@@ -1,4 +1,4 @@
-## 5. Cross-Platform vs Claude-Only
+## 4. Cross-Platform vs Claude-Only
 
 Some assets ship to Claude Code only; some ship to both Claude Code and Codex. The instinct is to mirror this in folders (`src/claude-only/`, `src/cross-platform/`). **Reject that instinct.** Folder splits force authors to decide platform targeting before they have written the content, fragment skills across trees, and make refactors a directory move.
 

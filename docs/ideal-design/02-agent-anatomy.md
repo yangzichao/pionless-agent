@@ -55,7 +55,7 @@ These exist on every comparable platform under different names. Removing any of 
 
 A subagent that behaves like a pure function leaves all three unset; one that needs persistent context, external tools, and pre-loaded workflows may engage all three. Either is a complete subagent.
 
-Delegation — which subagents an agent may spawn — is **not** a surface of the subagent role. Per Claude Code's model, subagents are leaf nodes: they are spawned by a parent and return a summary, but do not themselves spawn further subagents. Spawning topology is a property of the *specialized main session* role (`claude --agent <name>`) and is covered in [chapter 06 — Agent-Orchestrates-Agent](06-agent-orchestrates-agent.md).
+Delegation — which subagents an agent may spawn — is **not** a surface of the subagent role. Per Claude Code's model, subagents are leaf nodes: they are spawned by a parent and return a summary, but do not themselves spawn further subagents. Spawning topology is a property of the *specialized main session* role (`claude --agent <name>`) and is covered in [chapter 05 — Agent-Orchestrates-Agent](05-agent-orchestrates-agent.md).
 
 **Claude-Code-specific surfaces** are unique to this runtime. Treat them as opt-in extras, not load-bearing parts of the agent's design — definitions that lean on these will not port to other platforms.
 

@@ -16,33 +16,33 @@ See [`02-agent-anatomy.md`](02-agent-anatomy.md).
 
 ---
 
-## 3. Top-Level Layout
+## 3. Shared Fragments
 
-See [`03-top-level-layout.md`](03-top-level-layout.md).
-
----
-
-## 4. Shared Fragments
-
-See [`04-shared-fragments.md`](04-shared-fragments.md).
+See [`03-shared-fragments.md`](03-shared-fragments.md).
 
 ---
 
-## 5. Cross-Platform vs Claude-Only
+## 4. Cross-Platform vs Claude-Only
 
-See [`05-cross-platform-vs-claude-only.md`](05-cross-platform-vs-claude-only.md).
-
----
-
-## 6. Agent-Orchestrates-Agent
-
-See [`06-agent-orchestrates-agent.md`](06-agent-orchestrates-agent.md).
+See [`04-cross-platform-vs-claude-only.md`](04-cross-platform-vs-claude-only.md).
 
 ---
 
-## 7. Python in Skills
+## 5. Agent-Orchestrates-Agent
 
-See [`07-python-in-skills.md`](07-python-in-skills.md).
+See [`05-agent-orchestrates-agent.md`](05-agent-orchestrates-agent.md).
+
+---
+
+## 6. Python in Skills
+
+See [`06-python-in-skills.md`](06-python-in-skills.md).
+
+---
+
+## 7. Top-Level Layout
+
+See [`07-top-level-layout.md`](07-top-level-layout.md). *Deferred — synthesizes chapters 3–6; revisit after they are finalized.*
 
 ---
 
