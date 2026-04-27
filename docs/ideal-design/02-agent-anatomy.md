@@ -1,6 +1,8 @@
 ## 2. Agent Anatomy
 
-A Claude Code agent is a runtime: a model, tool set, and system prompt that can be invoked as a subagent. It is typically narrow (one job, one output shape) and is intended to be called by another agent rather than by the end user.
+This chapter is finalized and should not be revised unless the underlying definition of a Claude Code agent changes.
+
+A Claude Code agent definition describes a model, tool set, and system prompt that can run either as a delegated subagent or as a specialized main session.
 
 Two independent axes describe any agent definition:
 
@@ -11,7 +13,7 @@ Two independent axes describe any agent definition:
 
 These two axes are orthogonal: "Claude Code-specific" and "subagent" describe different things and do not exclude each other. A file authored for Claude Code can still be a subagent — operationally — whenever a parent Claude Code session delegates to it.
 
-This chapter assumes the subagent role unless stated otherwise. Body-level adjustments for the specialized-main-session role (host-facing identity statement, conversation etiquette, `CLAUDE.md` / memory handling) are out of scope here.
+This chapter focuses on the subagent role: the definition is invoked by a parent Claude Code session via the `Agent` tool, runs in an isolated context, returns only a summary to its parent, and is typically narrow (one job, one output shape). Body-level adjustments for the specialized-main-session role (host-facing identity statement, conversation etiquette, `CLAUDE.md` / memory handling) are out of scope here.
 
 ### Always a single markdown file
 
@@ -29,48 +31,63 @@ agents/
 
 The filename should match the `name` field.
 
+### First-class, second-class, and Claude-Code-specific surfaces
+
+Treating the agent as a runtime means recognizing it as the composition of several configurable surfaces. They are not all equal in weight.
+
+**First-class surfaces** are the agent's core. Every agent has these — even when a field is omitted, the surface is still present (omitting `model` inherits the caller's; omitting `tools` inherits the caller's tool set). They define **what the agent is** and **what it can do**.
+
+| Surface | Frontmatter fields | What it controls |
+|---|---|---|
+| Identity & behavior | body; `name`, `description` | Who the agent is, how it works, when the host should invoke it |
+| Tool surface | `tools`, `disallowedTools` | Which actions the agent can take |
+| Compute substrate | `model` | The model the agent runs on |
+
+These exist on every comparable platform under different names. Removing any of them removes something fundamental.
+
+**Second-class surfaces** are cross-platform capability extensions. They exist on most agent platforms, are **optional**, and a given agent may engage some, all, or none. When present they materially expand what the agent can do — when absent the agent is still complete.
+
+| Surface | Frontmatter fields | What it controls |
+|---|---|---|
+| Knowledge surface | `skills` | Workflow knowledge packs injected at startup |
+| External tool surface | `mcpServers` | MCP servers connected for the agent's lifetime |
+| State surface | `memory` | Persistent storage across conversations |
+
+A subagent that behaves like a pure function leaves all three unset; one that needs persistent context, external tools, and pre-loaded workflows may engage all three. Either is a complete subagent.
+
+Delegation — which subagents an agent may spawn — is **not** a surface of the subagent role. Per Claude Code's model, subagents are leaf nodes: they are spawned by a parent and return a summary, but do not themselves spawn further subagents. Spawning topology is a property of the *specialized main session* role (`claude --agent <name>`) and is covered in [chapter 06 — Agent-Orchestrates-Agent](06-agent-orchestrates-agent.md).
+
+**Claude-Code-specific surfaces** are unique to this runtime. Treat them as opt-in extras, not load-bearing parts of the agent's design — definitions that lean on these will not port to other platforms.
+
+| Surface | Frontmatter fields | What it controls |
+|---|---|---|
+| Lifecycle hooks | `hooks` | PreToolUse / lifecycle event validators that can block, transform, or audit tool calls |
+
+**Tuning knobs.** Everything else in frontmatter is operational tuning with sensible defaults: `maxTurns`, `effort`, `permissionMode`, `background`, `isolation`, `initialPrompt`, `color`. They adjust **how** the agent runs but do not change **what** it is or **what** it can do. Omitting any of them does not break the agent definition; most agents leave them unset.
+
 ### Frontmatter
 
-Use the official Claude Code subagent frontmatter. `name` and `description` are required; everything else is optional.
+Frontmatter configures the surfaces above plus a handful of tuning knobs. Only `name` and `description` are required; everything else is optional. Example:
 
 ```yaml
 ---
-name: research-orchestrator
-description: Coordinates parallel research workers and merges their outputs. Use when the question requires decomposition into independent tracks.
-model: opus
-maxTurns: 40
-tools: Agent(research-worker, research-verifier), Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch
-color: cyan
----
-```
-
-Field reference for the keys most agents use:
-
-| Key | Purpose |
-|---|---|
-| `name` | Unique identifier (lowercase, hyphenated). Required. |
-| `description` | When the host should delegate to this agent. Required; phrase it as a routing hint. |
-| `model` | `sonnet`, `opus`, `haiku`, a full model id, or `inherit`. |
-| `maxTurns` | Hard cap on agentic turns. |
-| `tools` | Allowlist. Use `Agent(child-a, child-b)` inside this list to restrict which subagents can be spawned. Omit `tools` to inherit the caller's full tool set. |
-| `disallowedTools` | Denylist. Subtracts from the inherited or specified tool set (e.g., `disallowedTools: Agent` forbids further delegation). |
-| `color` | Display color in the UI. |
-
-Other supported fields, when an agent genuinely needs that knob: `permissionMode`, `mcpServers`, `hooks`, `memory`, `background`, `effort`, `isolation`, `initialPrompt`, `skills`.
-
-### Restricting subagent spawn topology
-
-There is no separate `spawns-agents` field. To say "this orchestrator may only spawn `research-worker` and `research-verifier`," put it in the tool allowlist:
-
-```yaml
-tools: Agent(research-worker, research-verifier), Read, Write, Bash
-```
-
-Workers that must never delegate further use the denylist:
-
-```yaml
+name: research-worker
+description: Worker for a narrow research subquestion. Use when an orchestrator needs evidence gathered for one focused query.
+model: sonnet
+maxTurns: 18
 disallowedTools: Agent
+skills:
+  - quick-research
+---
 ```
+
+Field-level notes for the most-used keys:
+
+- **`name`** — unique identifier, lowercase-hyphenated; the filename must match.
+- **`description`** — phrase as a routing hint ("Use when …") so a host can decide whether to delegate.
+- **`model`** — `sonnet`, `opus`, `haiku`, a full model id, or `inherit`.
+- **`tools`** — allowlist. Omit to inherit the caller's full tool set.
+- **`disallowedTools`** — denylist subtracted from the inherited or specified tool set. Leaf workers commonly set `disallowedTools: Agent` as a hardening measure to ensure they never spawn subagents.
 
 ### What does NOT go in an agent
 
