@@ -1,5 +1,7 @@
 ## 6. Scripts in Skills
 
+> **Status: not finalized — needs further review.**
+
 A skill may bundle executable code in a `scripts/` directory. Claude reads `SKILL.md` for instructions, then invokes scripts via Bash. The script's source never enters the context window — only what it writes to stdout/stderr does.
 
 This chapter follows Anthropic's official guidance — referred to as "the spec" throughout. Anything not stated here is not part of the spec; project-local conventions belong in a separate document.

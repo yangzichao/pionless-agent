@@ -1,6 +1,6 @@
 ## 5. Agent-Orchestrates-Agent
 
-This chapter is finalized and should not be revised unless Claude Code's underlying runtime model for agents and subagents changes (per chapter 02), or the skill/agent boundary established in chapter 01 changes.
+> **Status: finalized.** This chapter should not be revised unless Claude Code's underlying runtime model for agents and subagents changes (per chapter 02), or the skill/agent boundary established in chapter 01 changes.
 
 **Decision: all agents are siblings under `src/agents/`.** No nesting, no separate pools.
 
