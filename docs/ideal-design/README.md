@@ -8,6 +8,7 @@ The full original document is preserved at [ideal-design.md](ideal-design.md) fo
 
 1. [Skill Anatomy](01-skill-anatomy.md)
 2. [Agent Anatomy](02-agent-anatomy.md)
+   - [Skills vs Subagents](02b-skills-vs-subagents.md) — *side-by-side, picks no number*
 3. [Shared Fragments](03-shared-fragments.md) — *decided against; chapter records why*
 4. [Cross-Platform vs Claude-Only](04-cross-platform-vs-claude-only.md)
 5. [Agent-Orchestrates-Agent](05-agent-orchestrates-agent.md)

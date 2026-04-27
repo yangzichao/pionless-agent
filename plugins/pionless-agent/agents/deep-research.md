@@ -3,7 +3,6 @@ name: deep-research
 description: Use when a research task needs plan-board decomposition, parallel evidence gathering via deep-research-worker, claim verification via deep-research-verifier, and synthesis into a citation-backed final report.
 contract: contracts/deep-research.yaml
 model: opus
-maxTurns: 40
 tools: Agent(deep-research-worker, deep-research-verifier), Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, Skill
 skills:
   - deep-research

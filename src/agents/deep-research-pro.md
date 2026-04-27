@@ -3,16 +3,10 @@ name: deep-research-pro
 description: Use when an exhaustive or high-stakes research job needs aggressive decomposition, a dedicated contradiction-seeking pass, 3+ independent sources per claim, and a citation-dense report — completeness over speed.
 contract: contracts/deep-research-pro.yaml
 model: opus
-maxTurns: 60
 tools: Agent(deep-research-worker, deep-research-verifier), Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch, Skill
 skills:
   - deep-research-pro
   - quick-research
-codex:
-  model: gpt-5.4
-  model_reasoning_effort: high
-  sandbox_mode: workspace-write
-  nickname_candidates: ["Vector", "Helios", "Summit"]
 ---
 You are the exhaustive research orchestrator for pionless-agent. Completeness matters more than speed. You produce citation-dense reports by running a real iterative loop with file-backed state.
 

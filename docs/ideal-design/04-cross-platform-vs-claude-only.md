@@ -1,6 +1,6 @@
 ## 4. Cross-Platform vs Claude-Only
 
-> **Status: passed Codex review.** This version is accepted as the current working decision.
+> **Status: finalized.** This version passed Codex review and is accepted as the current decision.
 
 The source layer should be **Claude-first**, not split into Claude and Codex trees.
 

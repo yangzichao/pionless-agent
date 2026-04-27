@@ -120,14 +120,15 @@ The intended entrypoints are agents, not bare skills:
 - `deep-research`: orchestrator agent for substantial research jobs
 - `deep-research-pro`: orchestrator agent for exhaustive investigations
 - `quick-research`: lightweight standalone fast-research agent
-- `research-worker`: worker agent for focused subquestions
-- `research-verifier`: worker agent for contradiction-seeking and claim verification
+- `deep-research-worker`: bonded worker for focused subquestions, spawned by the deep-research orchestrators
+- `deep-research-verifier`: bonded worker for contradiction-seeking and claim verification, spawned by the deep-research orchestrators
+- `parallel-fix-worker`: bonded worker for one-issue verify-fix-self-check cycles, spawned by hosts running the parallel-fix skill
 
 The shared `skills/` directory exists to keep the operating procedure reusable across Claude and Codex. It is not meant to be the only user-facing surface.
 
 ### Orchestrator fan-out requirements
 
-Orchestrator agents (`deep-research`, `deep-research-pro`) spawn `research-worker` and `research-verifier` as named subagents. This requires the orchestrator to run as the **main session agent**, not as a delegated subagent, because subagents cannot spawn other subagents on either platform.
+Orchestrator agents (`deep-research`, `deep-research-pro`) spawn `deep-research-worker` and `deep-research-verifier` as named subagents. This requires the orchestrator to run as the **main session agent**, not as a delegated subagent, because subagents cannot spawn other subagents on either platform.
 
 **Claude Code**: Launch the orchestrator as the session agent:
 

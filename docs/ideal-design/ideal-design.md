@@ -16,6 +16,12 @@ See [`02-agent-anatomy.md`](02-agent-anatomy.md).
 
 ---
 
+## Skills vs Subagents (interlude, no number)
+
+See [`02b-skills-vs-subagents.md`](02b-skills-vs-subagents.md). *Side-by-side comparison so authors don't confuse the two.*
+
+---
+
 ## 3. Shared Fragments
 
 See [`03-shared-fragments.md`](03-shared-fragments.md). *Decided against — chapter records the reasoning so the question is not re-litigated.*

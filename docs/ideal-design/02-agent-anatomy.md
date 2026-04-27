@@ -1,6 +1,6 @@
 ## 2. Agent Anatomy
 
-This chapter is finalized and should not be revised unless the underlying definition of a Claude Code agent changes.
+> **Status: finalized.** This chapter should not be revised unless the underlying definition of a Claude Code agent changes.
 
 A Claude Code agent definition describes a model, tool set, and system prompt that can run either as a delegated subagent or as a specialized main session.
 
@@ -23,9 +23,9 @@ A Claude Code subagent is a single `.md` file with frontmatter and a prompt body
 
 ```
 agents/
-  research-orchestrator.md
-  research-worker.md
-  research-verifier.md
+  deep-research.md
+  deep-research-worker.md
+  deep-research-verifier.md
   code-reviewer.md
 ```
 
@@ -71,10 +71,9 @@ Frontmatter configures the surfaces above plus a handful of tuning knobs. Only `
 
 ```yaml
 ---
-name: research-worker
-description: Worker for a narrow research subquestion. Use when an orchestrator needs evidence gathered for one focused query.
+name: deep-research-worker
+description: Use when the deep-research orchestrator needs evidence gathered for one narrow subquestion and returned as structured findings (no synthesis, no spawning).
 model: sonnet
-maxTurns: 18
 disallowedTools: Agent
 skills:
   - quick-research

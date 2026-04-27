@@ -33,16 +33,16 @@ repo-root/
       quick-research.md
       deep-research.md
       deep-research-pro.md
-      research-worker.md
-      research-verifier.md
-      fix-worker.md
+      deep-research-worker.md
+      deep-research-verifier.md
+      parallel-fix-worker.md
     contracts/
       quick-research.yaml
       deep-research.yaml
       deep-research-pro.yaml
-      research-worker.yaml
-      research-verifier.yaml
-      fix-worker.yaml
+      deep-research-worker.yaml
+      deep-research-verifier.yaml
+      parallel-fix-worker.yaml
     shared/
       fragments/
       templates/
@@ -67,9 +67,9 @@ src/agents/
   deep-research.md
   deep-research-pro.md
   quick-research.md
-  research-worker.md
-  research-verifier.md
-  fix-worker.md
+  deep-research-worker.md
+  deep-research-verifier.md
+  parallel-fix-worker.md
 ```
 
 This is the right source layout for agents because the source-of-truth runtime object is one markdown file.

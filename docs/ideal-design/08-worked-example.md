@@ -38,10 +38,8 @@ repo-root/
         assets/
           report-template.md
           workspace-template.md
-        tests/
-          fixtures/
-            sample_query.json
-          test_extract_sources.py
+        evals/
+          evals.json
         requirements.txt
     agents/
       research-orchestrator/
@@ -223,6 +221,7 @@ build:
   agent-converter: build/md-to-toml.py
   exclude-from-dist:
     - tests/
+    - evals/
     - "**/*.test.*"
     - "**/__pycache__/**"
 ```
@@ -232,7 +231,7 @@ build:
 After running `bash build/build.sh`:
 
 - `dist/claude-code/skills/deep-research/SKILL.md` is a single self-contained file with all `<!-- include: -->` directives expanded inline.
-- `dist/claude-code/skills/deep-research/scripts/` contains `extract_sources.py`, `dedupe_citations.py`, and `lib/url_normalizer.py`. Tests are excluded.
+- `dist/claude-code/skills/deep-research/scripts/` contains `extract_sources.py`, `dedupe_citations.py`, and `lib/url_normalizer.py`. Tests and evals are excluded.
 - `dist/claude-code/agents/research-orchestrator/AGENT.md` is the expanded markdown.
 - `dist/claude-code/agents/research-worker.md` is the expanded markdown.
 - `dist/codex/agents/research-orchestrator.toml` is the agent converted to TOML.
@@ -243,13 +242,13 @@ After running `bash build/build.sh`:
 
 The example exercises every part of the design:
 
-- A skill with scripts, references, assets, and tests (Section 1).
+- A skill with scripts, references, assets, and evals (Section 1).
 - An agent in folder form because it ships scripts (Section 2).
 - An agent in file form because it does not (Section 2).
-- Skills and agents as flat siblings under `src/` (Section 3).
-- Shared fragments in `src/shared/`, pulled in via build-time includes (Section 4).
-- Cross-platform routing driven by frontmatter and `manifest.yaml`, with no folder split (Section 5).
-- Orchestrator and worker as siblings, with the relationship encoded in `spawns-agents` and `invokable-by` (Section 6).
-- Python scripts in `scripts/` with a `lib/` subfolder for helpers, invoked from SKILL.md by relative path (Section 7).
+- Skills and agents as flat siblings under `src/` (Section 7).
+- Shared fragments in `src/shared/`, pulled in via build-time includes (Section 3).
+- Cross-platform routing driven by frontmatter and `manifest.yaml`, with no folder split (Section 4).
+- Orchestrator and worker as siblings, with the relationship encoded in `spawns-agents` and `invokable-by` (Section 5).
+- Scripts in `scripts/` with a `lib/` subfolder for helpers, invoked from SKILL.md by relative path (Section 6).
 
 The structure stays correct if a second skill starts using `research-worker`, if a Codex-only skill is added, if `research-orchestrator` grows a third worker type, or if a new shared fragment is introduced. No move, rename, or restructure is required for any of those changes.

@@ -157,11 +157,9 @@ for md_path in sorted(agents_src.glob("*.md")):
     fm, body = parse_frontmatter(text)
     name = fm.get("name", md_path.stem)
 
-    # --- Generate Claude .md (strip codex: section) ---
+    # --- Generate Claude .md ---
     claude_fm_lines = []
     for key, val in fm.items():
-        if key == "codex":
-            continue
         if isinstance(val, list):
             claude_fm_lines.append(f"{key}:")
             for item in val:
@@ -173,7 +171,6 @@ for md_path in sorted(agents_src.glob("*.md")):
     (claude_agents / md_path.name).write_text(claude_text)
 
     # --- Generate Codex .toml ---
-    codex_cfg = fm.get("codex", {})
     skills_list = fm.get("skills", [])
     if isinstance(skills_list, str):
         skills_list = [skills_list]
@@ -182,16 +179,6 @@ for md_path in sorted(agents_src.glob("*.md")):
     toml_lines.append(f'name = {to_toml_value(name)}')
     if "description" in fm:
         toml_lines.append(f'description = {to_toml_value(fm["description"])}')
-
-    # Codex-specific fields
-    if "model" in codex_cfg:
-        toml_lines.append(f'model = {to_toml_value(codex_cfg["model"])}')
-    if "model_reasoning_effort" in codex_cfg:
-        toml_lines.append(f'model_reasoning_effort = {to_toml_value(codex_cfg["model_reasoning_effort"])}')
-    if "sandbox_mode" in codex_cfg:
-        toml_lines.append(f'sandbox_mode = {to_toml_value(codex_cfg["sandbox_mode"])}')
-    if "nickname_candidates" in codex_cfg:
-        toml_lines.append(f'nickname_candidates = {to_toml_value(codex_cfg["nickname_candidates"])}')
 
     # Developer instructions = body text
     body_escaped = body.strip().replace('\\', '\\\\').replace('"""', '\\"\\"\\"')

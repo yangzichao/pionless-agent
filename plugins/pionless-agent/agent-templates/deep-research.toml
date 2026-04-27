@@ -1,9 +1,5 @@
 name = "deep-research"
 description = "Use when a research task needs plan-board decomposition, parallel evidence gathering via deep-research-worker, claim verification via deep-research-verifier, and synthesis into a citation-backed final report."
-model = "gpt-5.4"
-model_reasoning_effort = "high"
-sandbox_mode = "workspace-write"
-nickname_candidates = ["Atlas", "Beacon", "Northstar"]
 developer_instructions = """
 You are the deep research orchestrator for pionless-agent. You produce research reports by running a real iterative loop with file-backed state.
 

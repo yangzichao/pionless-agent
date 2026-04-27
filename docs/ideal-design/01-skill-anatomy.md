@@ -1,6 +1,6 @@
 ## 1. Skill Anatomy
 
-This chapter is finalized and should not be revised unless the underlying definition of a skill changes.
+> **Status: finalized.** This chapter should not be revised unless the underlying definition of a skill changes.
 
 A skill is a **portable workflow package**.
 
@@ -54,16 +54,7 @@ Those are runtime concerns. They belong to agents, orchestrators, host applicati
 
 ### Agentic Skills
 
-Some skills are intentionally agentic. They do not merely provide facts; they teach a host agent how to run a complete procedure.
-
-Examples:
-
-- A research skill can teach source discovery, source triage, evidence extraction, contradiction checks, and report synthesis.
-- A code review skill can teach a review loop, severity ranking, patch inspection, and final finding format.
-- A document skill can teach intake, transformation, rendering, visual QA, and export.
-- An occupator skill can teach how to inspect a space, identify work surfaces, apply occupation rules, and emit structured claims.
-
-This is valid skill design. The boundary is that the skill describes the workflow; the host agent executes it.
+Some skills are intentionally agentic. They do not merely provide facts; they teach a host agent how to run a complete procedure. This is valid skill design. The boundary is still the same: the skill describes the workflow, and the host agent executes it.
 
 A useful wording pattern:
 
@@ -142,9 +133,9 @@ Weak description shape:
 description: Helps with research.
 ```
 
-### Private Metadata
+### Private Metadata And Tool Guidance
 
-Private metadata is acceptable when needed for packaging, indexing, or authoring workflows, but it should not turn the skill into a runtime definition.
+Private metadata is acceptable when needed for packaging, indexing, or authoring workflows, but it should not turn the skill into a runtime definition. The same rule applies to tool guidance: a skill may describe how to use a tool, but it does not grant permission to use one.
 
 Reasonable:
 
@@ -167,10 +158,6 @@ metadata:
 
 Why: those fields imply runtime authority. A skill may suggest a delegation pattern, but an agent or orchestrator owns the authoritative spawn topology.
 
-### Tool Guidance
-
-Skills may describe tool usage, but they do not grant tool permissions.
-
 Valid:
 
 ```markdown
@@ -186,7 +173,7 @@ This skill is allowed to run shell commands.
 
 The host runtime decides whether a tool exists, whether it is permitted, and whether approval is required.
 
-### Progressive Disclosure
+### Progressive Disclosure And Resource References
 
 Design every skill around progressive disclosure:
 
@@ -207,8 +194,6 @@ For SEC-specific source rules, read `references/sec-filings.md`.
 For medical-source grading, read `references/medical-evidence.md`.
 For final output, use `assets/report-template.md`.
 ```
-
-### Resource References
 
 Paths referenced from `SKILL.md` should be relative to the skill root and should point to stable, shallow entrypoints:
 
@@ -244,27 +229,7 @@ If the package needs another runtime, that runtime should be modeled as an agent
 
 ### Cross-Platform Principle
 
-The skill package should be format-portable. Platform differences should live in packaging, installation, or adapter layers, not in divergent versions of the skill's core instructions.
-
-Good:
-
-```text
-same skill package -> installed into host-specific skill directory
-```
-
-Bad:
-
-```text
-source-triage-for-codex/
-source-triage-for-claude/
-source-triage-for-gemini/
-```
-
-If a platform-specific note is unavoidable, keep it explicit and isolated:
-
-```markdown
-If the host does not support script execution, follow the manual fallback in `references/manual-workflow.md`.
-```
+The skill package should stay portable. Platform differences belong in packaging or adapter layers, not in divergent copies of the core skill instructions. If a platform-specific note is unavoidable, keep it explicit and isolated.
 
 ### Final Definition
 

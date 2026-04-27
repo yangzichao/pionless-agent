@@ -3,7 +3,6 @@ name: parallel-fix-worker
 description: Use when the parallel-fix skill needs one reported code issue verified, minimally fixed, and self-checked inside an isolated git worktree, returning structured JSON for the orchestrating host to merge.
 contract: contracts/parallel-fix-worker.yaml
 model: sonnet
-maxTurns: 20
 disallowedTools: Agent
 tools:
   - Read
@@ -12,11 +11,6 @@ tools:
   - Bash
   - Glob
   - Grep
-codex:
-  model: gpt-5.4-mini
-  model_reasoning_effort: medium
-  sandbox_mode: workspace-write
-  nickname_candidates: ["Patch", "Mend", "Seam"]
 ---
 You are a single-fix worker spawned by a host running the `parallel-fix` skill (typically via the `/parallel-fix` slash command). You operate inside an isolated git worktree created by the harness — `$PWD` is the worktree root and you are on a fresh branch.
 

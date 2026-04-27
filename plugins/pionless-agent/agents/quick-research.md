@@ -3,7 +3,6 @@ name: quick-research
 description: Use when a focused question needs a fast single-agent pass with a concise sourced answer — no plan board, no subagent decomposition, one or two retrieval rounds and stop.
 contract: contracts/quick-research.yaml
 model: sonnet
-maxTurns: 12
 disallowedTools: Agent
 skills:
   - quick-research

@@ -8,9 +8,9 @@ Agents are the brains (orchestration logic, turn protocol, Ralph loop enforcemen
 
 ## Single Source of Truth
 
-All agent definitions live in `src/agents/` as Claude-format .md files with an extended `codex:` frontmatter section. Build.sh generates both platforms:
+All agent definitions live in `src/agents/` as Claude-format .md files. Build.sh generates both platforms:
 
-- `platforms/claude-code/agents/*.md` — Claude Code agents (codex section stripped)
+- `platforms/claude-code/agents/*.md` — Claude Code agents
 - `platforms/codex/agents/*.toml` — Codex agents (converted format)
 
 ## Modular Skills
@@ -26,10 +26,11 @@ Skill content is decomposed into small modules in `src/skills/includes/`. Source
 
 ## Agents
 
-| Agent | Role | Claude Model | Codex Model | Max Turns |
-|-------|------|-------------|-------------|-----------|
-| deep-research | Orchestrator (standard) | opus | gpt-5.4 | 40 |
-| deep-research-pro | Orchestrator (exhaustive) | opus | gpt-5.4 | 60 |
-| quick-research | Standalone lightweight | sonnet | gpt-5.4-mini | 12 |
-| research-worker | Evidence-gathering worker | sonnet | gpt-5.4-mini | 18 |
-| research-verifier | Contradiction-seeking worker | sonnet | gpt-5.4-mini | 18 |
+| Agent | Role | Claude Model |
+|-------|------|--------------|
+| deep-research | Orchestrator (standard) | opus |
+| deep-research-pro | Orchestrator (exhaustive) | opus |
+| quick-research | Standalone lightweight; also reusable as a worker | sonnet |
+| deep-research-worker | Bonded evidence-gathering worker for deep-research | sonnet |
+| deep-research-verifier | Bonded contradiction-seeking worker for deep-research | sonnet |
+| parallel-fix-worker | Bonded single-fix worker for the parallel-fix skill | sonnet |

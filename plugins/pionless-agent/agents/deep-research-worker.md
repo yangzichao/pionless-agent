@@ -3,7 +3,6 @@ name: deep-research-worker
 description: Use when the deep-research orchestrator needs evidence gathered for one narrow subquestion and returned as structured findings (no synthesis, no spawning).
 contract: contracts/deep-research-worker.yaml
 model: sonnet
-maxTurns: 18
 disallowedTools: Agent
 skills:
   - quick-research

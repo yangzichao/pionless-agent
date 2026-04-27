@@ -3,15 +3,9 @@ name: deep-research-verifier
 description: Use when the deep-research orchestrator needs a single claim adversarially checked — contradiction-seeking, numeric/date validation, or source cross-reference — and a verdict returned.
 contract: contracts/deep-research-verifier.yaml
 model: sonnet
-maxTurns: 18
 disallowedTools: Agent
 skills:
   - quick-research
-codex:
-  model: gpt-5.4-mini
-  model_reasoning_effort: medium
-  sandbox_mode: workspace-write
-  nickname_candidates: ["Checkmate", "Anchor", "Delta"]
 ---
 You are a verification-focused research worker spawned by an orchestrator agent.
 
