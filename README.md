@@ -1,49 +1,48 @@
-# pionless-agent
+# pionless-matrix
 
-`pionless-agent` is a cross-platform research agent package for Claude Code and OpenAI Codex,
-plus a **dual-agent code review CLI** that orchestrates Claude Code and Codex CLI together.
+`pionless-matrix` is a cross-platform agent monorepo that publishes two separate plugins for Claude Code and OpenAI Codex, plus a **dual-agent code review CLI** that orchestrates Claude Code and Codex CLI together.
+
+## Plugins
+
+| Plugin | What it ships |
+|--------|---------------|
+| **`pionless-agent`** | Coding-workflow agents: `hoah-coder` (focused coder + built-in reviewer loop), `parallel-fix` (batch fixer with isolated worktree workers), `socratic-tutor`, `freshwater-doctor`. |
+| **`pionless-deep-research`** | Research package: `deep-research` orchestrator + leaf agents (worker, verifier, drafter, writer), 6 report-style skills (technical-paper, position-paper, executive-briefing, landscape-scan, design-to-do, tutorial), and a `markdown-to-pdf` pipeline. |
 
 This repository contains:
 
-- shared workflow skills in `shared/`
-- Claude plugin subagents in `platforms/claude-code/agents/`
-- Codex custom-agent templates in `platforms/codex/agents/`
-- Claude-specific manifest in `platforms/claude-code/.claude-plugin/`
-- Codex-specific manifest in `platforms/codex/.codex-plugin/`
-- a committed universal plugin package in `plugins/pionless-agent/`
-- a Claude marketplace in `.claude-plugin/marketplace.json`
-- `build.sh` to assemble runnable distributions under `dist/`
-- `.agents/plugins/marketplace.json` so Codex can discover the plugin from this repo
+- a single source tree in `src/` (agents, skills, plugin membership manifest)
+- per-plugin platform manifests under `platforms/<platform>/<plugin>/`
+- two committed plugin packages under `plugins/pionless-agent/` and `plugins/pionless-deep-research/` (serve both platforms)
+- a Claude marketplace in `.claude-plugin/marketplace.json` exposing both plugins
+- `.agents/plugins/marketplace.json` so Codex can discover the plugins from this repo
+- `build.sh` to regenerate every plugin from `src/`
 - install scripts under `scripts/`
 - **`packages/review-agent/`** — pip-installable dual-agent code review tool
 
 ## Structure
 
 ```text
-src/                          # single source of truth
-  agents/                     # agent definitions (.md with codex frontmatter)
-  contracts/                  # agent input/output contracts (yaml)
-  skills/                     # skill sources with <!-- include: --> markers
-    includes/                 # modular fragments shared across tiers
-shared/                       # expanded skills (generated, gitignored)
+src/                          # single source of truth for every plugin
+  agents/                     # agent definitions (.md) — all plugins
+  skills/                     # skill packages (SKILL.md + references/assets/scripts) — all plugins
+  plugins.json                # plugin membership: which agents/skills belong to which plugin
 platforms/
   claude-code/
-    agents/                   # generated, gitignored
-    .claude-plugin/plugin.json
+    <plugin>/.claude-plugin/plugin.json   # per-plugin Claude manifest
+    agents/                               # generated per-agent files (gitignored)
   codex/
-    agents/                   # generated, gitignored
-    .codex-plugin/plugin.json
+    <plugin>/.codex-plugin/plugin.json    # per-plugin Codex manifest
+    agents/                               # generated per-agent files (gitignored)
+shared/skills/                # expanded skills (generated, gitignored)
 plugins/
-  pionless-agent/             # committed universal plugin (marketplace target)
+  pionless-agent/             # committed plugin (marketplace target)
+  pionless-deep-research/     # committed plugin (marketplace target)
+dist/
+  <plugin>/claude-plugin/     # publish-ready Claude package (generated)
+  <plugin>/codex-plugin/      # publish-ready Codex  package (generated)
 packages/
   review-agent/               # dual-agent code review CLI (Python)
-    review_agent/
-      cli.py                  # argparse entry point
-      orchestrator.py         # multi-round review protocol
-      agents.py               # Claude Code / Codex CLI wrappers
-      prompts.py              # prompt templates per phase
-      output.py               # file output
-scripts/
 build.sh
 ```
 
@@ -53,16 +52,18 @@ build.sh
 bash build.sh
 ```
 
-This generates:
+For every plugin listed in `src/plugins.json`, this generates:
 
-- `dist/claude-plugin/`
-- `dist/codex-plugin/`
-- `plugins/pionless-agent/` as the committed repo plugin package for both platforms
+- `dist/<plugin>/claude-plugin/` — publish-ready Claude Code package
+- `dist/<plugin>/codex-plugin/` — publish-ready Codex package
+- `plugins/<plugin>/` — committed repo plugin (serves both platforms)
+
+`build.sh` also validates that every `src/agents/*.md` and `src/skills/<skill>/` is claimed by exactly one plugin.
 
 Agent packaging differs by platform:
 
 - Claude Code can load plugin-shipped subagents from `agents/`.
-- Codex custom agents live under `.codex/agents/` or `~/.codex/agents/`, so this repo ships templates in `platforms/codex/agents/` and the installer copies them into `~/.codex/agents/`.
+- Codex custom agents live under `.codex/agents/` or `~/.codex/agents/`, so each plugin ships templates in `agent-templates/` and the installer copies them into `~/.codex/agents/`.
 
 ## Install From GitHub
 
@@ -72,14 +73,15 @@ Repository:
 
 ### Claude Code
 
-True GitHub marketplace install is supported.
+True GitHub marketplace install is supported. Install either plugin (or both) from the same marketplace:
 
 ```bash
 /plugin marketplace add yangzichao/pionless-agent
 /plugin install pionless-agent@pionless-agent-marketplace
+/plugin install pionless-deep-research@pionless-agent-marketplace
 ```
 
-This works because the repo publishes a marketplace at `.claude-plugin/marketplace.json` that points at `./plugins/pionless-agent`.
+This works because the repo publishes a marketplace at `.claude-plugin/marketplace.json` that points at `./plugins/pionless-agent` and `./plugins/pionless-deep-research`.
 
 ### Codex
 
@@ -102,10 +104,11 @@ This installs:
 
 ## Test
 
-Claude Code:
+Claude Code (pick the plugin you want to load):
 
 ```bash
-claude --plugin-dir dist/claude-plugin
+claude --plugin-dir dist/pionless-agent/claude-plugin
+claude --plugin-dir dist/pionless-deep-research/claude-plugin
 ```
 
 Codex:

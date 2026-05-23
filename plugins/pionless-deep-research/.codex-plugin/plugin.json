@@ -1,7 +1,7 @@
 {
-  "name": "pionless-agent",
-  "version": "0.5.3",
-  "description": "Cross-platform research agent package. Codex ships shared research skills (with silent search/research mode auto-classification and 6 report styles including tutorial) and matching custom-agent templates (worker, verifier, drafter, writer) under ~/.codex/agents.",
+  "name": "pionless-deep-research",
+  "version": "0.6.0",
+  "description": "Deep-research package for Codex. Ships the deep-research skill (with silent search/research auto-classification and 6 report styles: technical-paper, position-paper, executive-briefing, landscape-scan, design-to-do, tutorial), the markdown-to-PDF pipeline, and matching custom-agent templates (worker, verifier, drafter, writer) under ~/.codex/agents.",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "author": {
@@ -18,10 +18,11 @@
     "agents",
     "subagents",
     "skills",
-    "mcp"
+    "research",
+    "deep-research"
   ],
   "interface": {
-    "displayName": "pionless-agent",
+    "displayName": "pionless-deep-research",
     "shortDescription": "Research agents with deep investigation and worker spawning",
     "longDescription": "A research-agent package centered on named orchestrators and worker agents. The Codex plugin distributes reusable skills and MCP config; the installer also lays down matching custom-agent files under ~/.codex/agents so deep-research can fan out to worker and verifier agents.",
     "developerName": "Zichao Yang",

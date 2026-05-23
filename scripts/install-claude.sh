@@ -3,24 +3,29 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-TARGET_DIR="${HOME}/.claude/plugins/pionless-agent"
 
 bash "$ROOT_DIR/build.sh"
 
 mkdir -p "${HOME}/.claude/plugins"
-rm -rf "$TARGET_DIR"
-cp -R "$ROOT_DIR/dist/claude-plugin" "$TARGET_DIR"
 
-echo "Installed Claude Code plugin to:"
-echo "  $TARGET_DIR"
-echo ""
-echo "This plugin ships these agents:"
-echo "  deep-research, deep-research-pro, quick-research,"
-echo "  deep-research-worker, deep-research-verifier, parallel-fix-worker"
-echo ""
+PLUGINS=$(/usr/bin/python3 -c "import json,sys; print(' '.join(json.load(open('$ROOT_DIR/src/plugins.json'))['plugins'].keys()))")
+
+for plugin in $PLUGINS; do
+  target_dir="${HOME}/.claude/plugins/${plugin}"
+  rm -rf "$target_dir"
+  cp -R "$ROOT_DIR/dist/${plugin}/claude-plugin" "$target_dir"
+  echo "Installed Claude Code plugin: $plugin"
+  echo "  $target_dir"
+  echo ""
+done
+
 echo "For GitHub marketplace install, Claude Code users can also run:"
 echo "  /plugin marketplace add yangzichao/pionless-agent"
-echo "  /plugin install pionless-agent@pionless-agent-marketplace"
+for plugin in $PLUGINS; do
+  echo "  /plugin install ${plugin}@pionless-agent-marketplace"
+done
 echo ""
-echo "For development you can also run:"
-echo "  claude --plugin-dir $ROOT_DIR/dist/claude-plugin"
+echo "For development you can also load a single plugin directly:"
+for plugin in $PLUGINS; do
+  echo "  claude --plugin-dir $ROOT_DIR/dist/${plugin}/claude-plugin"
+done

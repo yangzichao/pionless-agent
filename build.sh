@@ -5,9 +5,8 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "$0")" && pwd)"
 SRC_DIR="$ROOT_DIR/src"
 DIST_DIR="$ROOT_DIR/dist"
-CLAUDE_DIST="$DIST_DIR/claude-plugin"
-CODEX_DIST="$DIST_DIR/codex-plugin"
-REPO_PLUGIN_DIR="$ROOT_DIR/plugins/pionless-agent"
+PLUGINS_DIR="$ROOT_DIR/plugins"
+PLATFORMS_DIR="$ROOT_DIR/platforms"
 LOCK_DIR="$ROOT_DIR/.build.lock"
 
 while ! mkdir "$LOCK_DIR" 2>/dev/null; do
@@ -244,234 +243,220 @@ print(f"  Skills copied to shared/skills/: {', '.join(copied)}")
 PYTHON
 
 # ---------------------------------------------------------------------------
-# Step 2: Build dist packages
-# ---------------------------------------------------------------------------
-
-rm -rf "$CLAUDE_DIST" "$CODEX_DIST" "$REPO_PLUGIN_DIR"
-mkdir -p "$CLAUDE_DIST" "$CODEX_DIST"
-
-# Copy expanded skills to both dists
-cp -R "$ROOT_DIR/shared/skills" "$CLAUDE_DIST/"
-cp -R "$ROOT_DIR/shared/skills" "$CODEX_DIST/"
-
-# Copy MCP config
-cp "$ROOT_DIR/shared/.mcp.json" "$CLAUDE_DIST/"
-cp "$ROOT_DIR/shared/.mcp.json" "$CODEX_DIST/"
-
-# Platform-specific manifests
-cp -R "$ROOT_DIR/platforms/claude-code/.claude-plugin" "$CLAUDE_DIST/"
-cp -R "$ROOT_DIR/platforms/codex/.codex-plugin" "$CODEX_DIST/"
-
-# Claude agents (generated in Step 0)
-if [ -d "$ROOT_DIR/platforms/claude-code/agents" ]; then
-  cp -R "$ROOT_DIR/platforms/claude-code/agents" "$CLAUDE_DIST/"
-fi
-
-# Claude hooks
-if [ -d "$ROOT_DIR/platforms/claude-code/hooks" ]; then
-  cp -R "$ROOT_DIR/platforms/claude-code/hooks" "$CLAUDE_DIST/"
-fi
-
-# Claude LSP config
-if [ -f "$ROOT_DIR/platforms/claude-code/.lsp.json" ]; then
-  cp "$ROOT_DIR/platforms/claude-code/.lsp.json" "$CLAUDE_DIST/"
-fi
-
-# Codex app config
-if [ -f "$ROOT_DIR/platforms/codex/.app.json" ]; then
-  cp "$ROOT_DIR/platforms/codex/.app.json" "$CODEX_DIST/"
-fi
-
-# Codex agent templates (generated in Step 0)
-if [ -d "$ROOT_DIR/platforms/codex/agents" ]; then
-  mkdir -p "$CODEX_DIST/agent-templates"
-  cp -R "$ROOT_DIR/platforms/codex/agents/." "$CODEX_DIST/agent-templates/"
-fi
-
-# ---------------------------------------------------------------------------
-# Step 3: Strip Codex skill frontmatter to name + description only
+# Step 2: Assemble per-plugin outputs (dist + committed repo plugins)
 # ---------------------------------------------------------------------------
 #
-# Codex SKILL.md only consumes name/description for routing. The new
-# canonical frontmatter also has a `metadata:` block (author, version,
-# pionless.* tags) — we drop that on Codex but retain it for Claude/repo.
+# Membership lives in src/plugins.json. For each plugin we produce three
+# parallel layouts that share the same skill/agent bodies:
+#
+#   plugins/<plugin>/               committed plugin (serves both platforms)
+#   dist/<plugin>/claude-plugin/    publish-ready Claude Code package
+#   dist/<plugin>/codex-plugin/     publish-ready Codex package
+#
+# The Codex layout strips skill frontmatter to name + description only
+# (matching the platform's expectations). The repo plugin and Claude dist
+# retain the metadata block.
 
-/usr/bin/python3 - "$CODEX_DIST" <<'PYTHON'
+/usr/bin/python3 - "$ROOT_DIR" <<'PYTHON'
+import json
 import pathlib
 import re
+import shutil
 import sys
 
-codex_root = pathlib.Path(sys.argv[1])
-KEEP_KEYS = ("name:", "description:")
+root = pathlib.Path(sys.argv[1])
+src = root / "src"
+plugins_cfg = json.loads((src / "plugins.json").read_text())["plugins"]
+
+shared_skills = root / "shared" / "skills"
+mcp_json = root / "shared" / ".mcp.json"
+claude_agents_built = root / "platforms" / "claude-code" / "agents"
+codex_agents_built = root / "platforms" / "codex" / "agents"
+plugins_dir = root / "plugins"
+dist_dir = root / "dist"
+
+# --- Wipe outputs cleanly --------------------------------------------------
+if dist_dir.exists():
+    shutil.rmtree(dist_dir)
+dist_dir.mkdir()
+
+for plugin_name in plugins_cfg:
+    committed = plugins_dir / plugin_name
+    if committed.exists():
+        shutil.rmtree(committed)
+
+# --- Validation: every src agent/skill must belong to exactly one plugin ---
+all_src_agents = {p.stem for p in (src / "agents").glob("*.md")}
+all_src_skills = {p.name for p in (src / "skills").iterdir() if p.is_dir() and (p / "SKILL.md").exists()}
+
+claimed_agents = []
+claimed_skills = []
+for plugin_name, membership in plugins_cfg.items():
+    claimed_agents.extend(membership.get("agents", []))
+    claimed_skills.extend(membership.get("skills", []))
+
+dup_agents = {a for a in claimed_agents if claimed_agents.count(a) > 1}
+dup_skills = {s for s in claimed_skills if claimed_skills.count(s) > 1}
+if dup_agents:
+    sys.exit(f"  ✗ Agents claimed by multiple plugins: {sorted(dup_agents)}")
+if dup_skills:
+    sys.exit(f"  ✗ Skills claimed by multiple plugins: {sorted(dup_skills)}")
+
+orphan_agents = all_src_agents - set(claimed_agents)
+orphan_skills = all_src_skills - set(claimed_skills)
+if orphan_agents:
+    sys.exit(f"  ✗ Agents in src/agents/ not claimed by any plugin in src/plugins.json: {sorted(orphan_agents)}")
+if orphan_skills:
+    sys.exit(f"  ✗ Skills in src/skills/ not claimed by any plugin in src/plugins.json: {sorted(orphan_skills)}")
+
+missing_agents = set(claimed_agents) - all_src_agents
+missing_skills = set(claimed_skills) - all_src_skills
+if missing_agents:
+    sys.exit(f"  ✗ Plugin manifest references missing agents: {sorted(missing_agents)}")
+if missing_skills:
+    sys.exit(f"  ✗ Plugin manifest references missing skills: {sorted(missing_skills)}")
+
+# --- Skill frontmatter filters --------------------------------------------
+CODEX_KEEP = ("name:", "description:")
+REPO_KEEP_TOP = ("name:", "description:", "metadata:")
+REPO_FORBIDDEN_TOP = ("model:", "allowed-tools:", "tools:", "spawns-agents:")
 
 
-def strip_to_name_description(frontmatter_lines):
-    """Keep only name and description (with multi-line description blocks).
-
-    Drops every other top-level key, including the `metadata:` block and any
-    legacy `model:` / `allowed-tools:` fields if they appear.
-    """
+def filter_codex_skill_fm(lines):
+    """Codex SKILL.md keeps only name + description (incl. multi-line scalars)."""
     kept = []
-    in_kept_multiline = False  # True while inside a description: |... block
-    in_dropped_block = False   # True while inside a non-kept top-level key (e.g. metadata:)
-
-    for line in frontmatter_lines:
+    in_kept_multiline = False
+    for line in lines:
         is_indented = line.startswith(" ") or line.startswith("\t")
         stripped = line.strip()
-
         if not is_indented and stripped:
-            # New top-level key — decide whether to keep it.
             in_kept_multiline = False
-            in_dropped_block = False
-            if any(stripped.startswith(k) for k in KEEP_KEYS):
+            if any(stripped.startswith(k) for k in CODEX_KEEP):
                 kept.append(line)
-                # Detect multi-line scalar style: `description: |`, `>`, `|-`, `>-`.
-                if stripped in {
-                    "description: |", "description: >",
-                    "description: |-", "description: >-",
-                }:
+                if stripped in {"description: |", "description: >",
+                                "description: |-", "description: >-"}:
                     in_kept_multiline = True
-            else:
-                in_dropped_block = True
             continue
-
-        # Indented continuation line.
-        if is_indented:
-            if in_kept_multiline:
-                kept.append(line)
-            # If in_dropped_block, drop silently.
+        if is_indented and in_kept_multiline:
+            kept.append(line)
             continue
-
-        # Blank line — preserve only if we are still inside something kept.
         if not stripped and in_kept_multiline:
             kept.append(line)
-
     return kept
 
 
-for path in codex_root.rglob("SKILL.md"):
-    text = path.read_text()
-    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.DOTALL)
-    if not match:
-        continue
-
-    body = match.group(2)
-    kept = strip_to_name_description(match.group(1).splitlines())
-    if kept:
-        path.write_text("---\n" + "\n".join(kept) + "\n---\n" + body)
-
-print("Built:")
-print(f"  Claude Code: {codex_root.parent / 'claude-plugin'}")
-print(f"  Codex:       {codex_root}")
-PYTHON
-
-# ---------------------------------------------------------------------------
-# Step 4: Build the committed repo plugin (serves both platforms)
-# ---------------------------------------------------------------------------
-
-mkdir -p "$ROOT_DIR/plugins"
-mkdir -p "$REPO_PLUGIN_DIR"
-
-# Expanded skills
-cp -R "$ROOT_DIR/shared/skills" "$REPO_PLUGIN_DIR/"
-cp "$ROOT_DIR/shared/.mcp.json" "$REPO_PLUGIN_DIR/"
-
-# Both platform manifests
-cp -R "$ROOT_DIR/platforms/claude-code/.claude-plugin" "$REPO_PLUGIN_DIR/"
-cp -R "$ROOT_DIR/platforms/codex/.codex-plugin" "$REPO_PLUGIN_DIR/"
-
-# Claude agents
-if [ -d "$ROOT_DIR/platforms/claude-code/agents" ]; then
-  cp -R "$ROOT_DIR/platforms/claude-code/agents" "$REPO_PLUGIN_DIR/"
-fi
-
-if [ -d "$ROOT_DIR/platforms/claude-code/hooks" ]; then
-  cp -R "$ROOT_DIR/platforms/claude-code/hooks" "$REPO_PLUGIN_DIR/"
-fi
-
-if [ -f "$ROOT_DIR/platforms/claude-code/.lsp.json" ]; then
-  cp "$ROOT_DIR/platforms/claude-code/.lsp.json" "$REPO_PLUGIN_DIR/"
-fi
-
-if [ -f "$ROOT_DIR/platforms/codex/.app.json" ]; then
-  cp "$ROOT_DIR/platforms/codex/.app.json" "$REPO_PLUGIN_DIR/"
-fi
-
-# Codex agent templates
-if [ -d "$ROOT_DIR/platforms/codex/agents" ]; then
-  mkdir -p "$REPO_PLUGIN_DIR/agent-templates"
-  cp -R "$ROOT_DIR/platforms/codex/agents/." "$REPO_PLUGIN_DIR/agent-templates/"
-fi
-
-# Defense-in-depth: strip any runtime-authority frontmatter that may have
-# crept into a skill source. Per docs/ideal-design/01-skill-anatomy.md,
-# skills must NOT declare model/tools/spawn — those belong to the host.
-# We keep name, description, and the metadata block (author, version, tags).
-/usr/bin/python3 - "$REPO_PLUGIN_DIR" <<'PYTHON'
-import pathlib
-import re
-import sys
-
-plugin_root = pathlib.Path(sys.argv[1])
-KEEP_TOP_KEYS = ("name:", "description:", "metadata:")
-FORBIDDEN_TOP_KEYS = ("model:", "allowed-tools:", "tools:", "spawns-agents:")
-
-
-def filter_frontmatter(frontmatter_lines):
+def filter_repo_skill_fm(lines):
+    """Repo/Claude SKILL.md keeps name, description, metadata; drops runtime-authority keys."""
     kept = []
     in_kept_multiline = False
-    in_kept_block = False  # True while inside metadata: (an indented YAML object)
+    in_kept_block = False
     in_dropped_block = False
-
-    for line in frontmatter_lines:
+    for line in lines:
         is_indented = line.startswith(" ") or line.startswith("\t")
         stripped = line.strip()
-
         if not is_indented and stripped:
-            # New top-level key.
             in_kept_multiline = False
             in_kept_block = False
             in_dropped_block = False
-            if any(stripped.startswith(k) for k in FORBIDDEN_TOP_KEYS):
-                # Defensive: drop the whole block.
+            if any(stripped.startswith(k) for k in REPO_FORBIDDEN_TOP):
                 in_dropped_block = True
                 continue
-            if any(stripped.startswith(k) for k in KEEP_TOP_KEYS):
+            if any(stripped.startswith(k) for k in REPO_KEEP_TOP):
                 kept.append(line)
                 if stripped == "metadata:" or stripped.endswith(":"):
-                    # `metadata:` is a nested object — keep its indented children.
                     in_kept_block = True
-                if stripped in {
-                    "description: |", "description: >",
-                    "description: |-", "description: >-",
-                }:
+                if stripped in {"description: |", "description: >",
+                                "description: |-", "description: >-"}:
                     in_kept_multiline = True
                 continue
-            # Unknown top-level key — drop to be safe.
             in_dropped_block = True
             continue
-
-        if is_indented:
-            if in_kept_multiline or in_kept_block:
-                kept.append(line)
+        if is_indented and (in_kept_multiline or in_kept_block):
+            kept.append(line)
             continue
-
         if not stripped and (in_kept_multiline or in_kept_block):
             kept.append(line)
-
     return kept
 
 
-for path in plugin_root.rglob("SKILL.md"):
-    text = path.read_text()
-    match = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.DOTALL)
-    if not match:
-        continue
+def rewrite_skill_frontmatter(plugin_root, keep_fn):
+    for path in plugin_root.rglob("SKILL.md"):
+        text = path.read_text()
+        m = re.match(r"^---\n(.*?)\n---\n(.*)$", text, re.DOTALL)
+        if not m:
+            continue
+        kept = keep_fn(m.group(1).splitlines())
+        if kept:
+            path.write_text("---\n" + "\n".join(kept) + "\n---\n" + m.group(2))
 
-    body = match.group(2)
-    kept = filter_frontmatter(match.group(1).splitlines())
-    if kept:
-        path.write_text("---\n" + "\n".join(kept) + "\n---\n" + body)
+
+# --- Per-plugin assembly ---------------------------------------------------
+def copy_skills(dest_root, skill_names):
+    skills_out = dest_root / "skills"
+    skills_out.mkdir()
+    for sname in sorted(skill_names):
+        shutil.copytree(shared_skills / sname, skills_out / sname)
+
+
+def copy_claude_agents(dest_root, agent_names):
+    out = dest_root / "agents"
+    out.mkdir()
+    for aname in sorted(agent_names):
+        shutil.copy(claude_agents_built / f"{aname}.md", out / f"{aname}.md")
+
+
+def copy_codex_agents(dest_root, agent_names, dir_name):
+    out = dest_root / dir_name
+    out.mkdir()
+    for aname in sorted(agent_names):
+        shutil.copy(codex_agents_built / f"{aname}.toml", out / f"{aname}.toml")
+
+
+print("Built plugins:")
+for plugin_name, membership in plugins_cfg.items():
+    agents = set(membership["agents"])
+    skills = set(membership["skills"])
+
+    claude_manifest_src = root / "platforms" / "claude-code" / plugin_name / ".claude-plugin"
+    codex_manifest_src = root / "platforms" / "codex" / plugin_name / ".codex-plugin"
+    if not claude_manifest_src.is_dir():
+        sys.exit(f"  ✗ Missing Claude manifest: {claude_manifest_src}")
+    if not codex_manifest_src.is_dir():
+        sys.exit(f"  ✗ Missing Codex manifest:  {codex_manifest_src}")
+
+    # 1) Claude dist
+    claude_dist = dist_dir / plugin_name / "claude-plugin"
+    claude_dist.mkdir(parents=True)
+    copy_skills(claude_dist, skills)
+    shutil.copy(mcp_json, claude_dist / ".mcp.json")
+    shutil.copytree(claude_manifest_src, claude_dist / ".claude-plugin")
+    copy_claude_agents(claude_dist, agents)
+    rewrite_skill_frontmatter(claude_dist, filter_repo_skill_fm)
+
+    # 2) Codex dist
+    codex_dist = dist_dir / plugin_name / "codex-plugin"
+    codex_dist.mkdir(parents=True)
+    copy_skills(codex_dist, skills)
+    shutil.copy(mcp_json, codex_dist / ".mcp.json")
+    shutil.copytree(codex_manifest_src, codex_dist / ".codex-plugin")
+    copy_codex_agents(codex_dist, agents, "agent-templates")
+    rewrite_skill_frontmatter(codex_dist, filter_codex_skill_fm)
+
+    # 3) Committed repo plugin (serves both platforms)
+    repo = plugins_dir / plugin_name
+    repo.mkdir(parents=True)
+    copy_skills(repo, skills)
+    shutil.copy(mcp_json, repo / ".mcp.json")
+    shutil.copytree(claude_manifest_src, repo / ".claude-plugin")
+    shutil.copytree(codex_manifest_src, repo / ".codex-plugin")
+    copy_claude_agents(repo, agents)
+    copy_codex_agents(repo, agents, "agent-templates")
+    rewrite_skill_frontmatter(repo, filter_repo_skill_fm)
+
+    print(f"  {plugin_name}:")
+    print(f"    agents: {sorted(agents)}")
+    print(f"    skills: {sorted(skills)}")
+    print(f"    Claude dist: dist/{plugin_name}/claude-plugin/")
+    print(f"    Codex  dist: dist/{plugin_name}/codex-plugin/")
+    print(f"    Repo plugin: plugins/{plugin_name}/")
 PYTHON
-
-echo "  Repo plugin: $REPO_PLUGIN_DIR"

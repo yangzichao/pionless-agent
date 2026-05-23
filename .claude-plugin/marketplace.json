@@ -5,13 +5,18 @@
     "url": "https://github.com/yangzichao"
   },
   "metadata": {
-    "description": "Cross-platform Claude Code and Codex plugin marketplace for pionless-agent. Provides a deep-research orchestrator (skill-shell) with leaf craft agents and 5 selectable report styles."
+    "description": "Cross-platform Claude Code and Codex plugin marketplace. Publishes pionless-agent (coding-workflow agents) and pionless-deep-research (research orchestrator + leaf agents + report-style skills)."
   },
   "plugins": [
     {
       "name": "pionless-agent",
       "source": "./plugins/pionless-agent",
-      "description": "Skill-shell deep-research orchestrator + leaf craft agents (worker / verifier / writer) + 5 report-style skills (technical-paper, position-paper, executive-briefing, landscape-scan, design-to-do)."
+      "description": "Coding-workflow agents: hoah-coder (focused coder with built-in reviewer loop), parallel-fix (batch issue fixer with isolated worktree workers), socratic-tutor, freshwater-doctor."
+    },
+    {
+      "name": "pionless-deep-research",
+      "source": "./plugins/pionless-deep-research",
+      "description": "Deep-research orchestrator (skill-shell) with leaf craft agents (worker, verifier, drafter, writer), 6 report-style skills (technical-paper, position-paper, executive-briefing, landscape-scan, design-to-do, tutorial), and a markdown-to-PDF pipeline."
     },
     {
       "name": "solo-ralph",

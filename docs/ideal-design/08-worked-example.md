@@ -191,7 +191,7 @@ Walking chapter 05's six invariants against `src/agents/`:
 1. **Claude Code agents** — each `src/agents/<name>.md` is copied to `platforms/claude-code/agents/<name>.md` with frontmatter unchanged.
 2. **Codex agents** — each `src/agents/<name>.md` is translated: `name` and `description` become TOML keys, the Markdown body becomes `developer_instructions`. Output goes to `platforms/codex/agents/<name>.toml`. Skills referenced via the `skills:` frontmatter list are emitted as `[[skills.config]]` blocks.
 3. **Published skills** — `src/skills/<name>/` is copied verbatim to `shared/skills/<name>/`. No include expansion happens because chapter 03 decided against shared fragments; any duplication between `deep-research/` and `deep-research-pro/` is physical.
-4. **Plugin bundles** — `dist/claude-plugin/` and `dist/codex-plugin/` are assembled from `platforms/` plus `shared/skills/`. The committed `plugins/pionless-agent/` is the same shape, served as a repo-local installable.
+4. **Plugin bundles** — for every plugin in `src/plugins.json`, `dist/<plugin>/claude-plugin/` and `dist/<plugin>/codex-plugin/` are assembled from that plugin's slice of `platforms/<target>/<plugin>/` plus its claimed `shared/skills/<name>/` and translated agents. The committed `plugins/<plugin>/` is the same shape, served as a repo-local installable.
 
 ### Where each chapter shows up
 

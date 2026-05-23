@@ -100,16 +100,17 @@ shared/
   skills/                  # normalized published skill trees
 
 dist/
-  claude-plugin/
-  codex-plugin/
+  <plugin>/claude-plugin/
+  <plugin>/codex-plugin/
 
 plugins/
-  pionless-agent/          # assembled repo-local installable bundle
+  <plugin>/                # assembled repo-local installable bundle, one per plugin
 ```
 
 - `shared/skills/` holds the published, host-agnostic copy of each skill. It is not a place to put hand-authored shared content (chapter 03 forbade that); it is the post-build snapshot of `src/skills/`.
-- `dist/claude-plugin/` and `dist/codex-plugin/` are the per-platform plugin bundles, each combining the matching `platforms/<target>/` scaffolding with the published skills and translated agents.
-- `plugins/pionless-agent/` is an in-repo committed bundle for users who want a single-directory install without going through `dist/`.
+- `src/plugins.json` partitions agents and skills among the published plugins (e.g. `pionless-agent`, `pionless-deep-research`). Every entry in `src/agents/` and `src/skills/` must belong to exactly one plugin; build.sh enforces this.
+- `dist/<plugin>/claude-plugin/` and `dist/<plugin>/codex-plugin/` are the per-plugin, per-platform bundles, each combining the matching `platforms/<target>/<plugin>/` manifest with that plugin's slice of the published skills and translated agents.
+- `plugins/<plugin>/` is the in-repo committed bundle for that plugin — what users who clone the repo install directly.
 
 The exact folder names can change. The important invariant is that everything in this section is a derived artifact. If a file can be regenerated, it should not be the place humans edit.
 

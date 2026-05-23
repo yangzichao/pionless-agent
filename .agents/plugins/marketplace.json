@@ -17,6 +17,18 @@
       "category": "Productivity"
     },
     {
+      "name": "pionless-deep-research",
+      "source": {
+        "source": "local",
+        "path": "./plugins/pionless-deep-research"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    },
+    {
       "name": "solo-ralph",
       "source": {
         "source": "local",
