@@ -5,7 +5,7 @@
     "url": "https://github.com/yangzichao"
   },
   "metadata": {
-    "description": "Cross-platform Claude Code and Codex plugin marketplace. Publishes pionless-agent (coding-workflow agents) and pionless-deep-research (research orchestrator + leaf agents + report-style skills)."
+    "description": "Cross-platform Claude Code and Codex plugin marketplace. Publishes pionless-agent (coding-workflow agents), pionless-deep-research (research orchestrator + leaf agents + report-style skills), and pionless-job-skillset (job-hunt / interview-prep workflows)."
   },
   "plugins": [
     {
@@ -22,6 +22,11 @@
       "name": "solo-ralph",
       "source": "./plugins/solo-ralph",
       "description": "Self-driving Ralph Loop: one command drives a vague goal through hard-req → spec → todo, then launches a fresh-subprocess loop that executes the todo until done. Loop survives session exit via nohup+disown."
+    },
+    {
+      "name": "pionless-job-skillset",
+      "source": "./plugins/pionless-job-skillset",
+      "description": "Job-hunt / interview-prep skill set. Ships onepoint3acres-interview-scraper: a 7-stage pipeline that scrapes 一亩三分地 面经 for a target company + job profile (SWE / MLE / RS / DS / etc), filters by user-defined preferences, clusters posts by underlying problem, and surfaces cross-source conflicts as ⚠️ annotations."
     }
   ]
 }
