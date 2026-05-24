@@ -32,6 +32,12 @@
         "report-style-tutorial",
         "markdown-to-pdf"
       ]
+    },
+    "pionless-job-skillset": {
+      "agents": [],
+      "skills": [
+        "onepoint3acres-interview-scraper"
+      ]
     }
   }
 }

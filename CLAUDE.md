@@ -6,6 +6,7 @@ This repository is a cross-platform agent monorepo. A single source tree (`src/`
 
 - **`pionless-agent`** — coding-workflow agents: `hoah-coder` (focused coder + reviewer loop), `parallel-fix` (batch fixer with worktree workers), `socratic-tutor`, `freshwater-doctor`.
 - **`pionless-deep-research`** — research agents: `deep-research` orchestrator + 4 leaf agents (worker, verifier, drafter, writer), 6 report-style skills, and `markdown-to-pdf` pipeline.
+- **`pionless-job-skillset`** — job-hunt / interview-prep skill set. Domain-specific workflows for collecting and organizing job-search material from external sources. Currently ships `onepoint3acres-interview-scraper` (一亩三分地 面经 → topic-clustered 题库 pipeline).
 
 ## Expected Layout
 
